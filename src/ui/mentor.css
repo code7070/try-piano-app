@@ -1,0 +1,254 @@
+/* Mentor panel sits in the stage, above the keyboard. */
+.mentor {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  width: min(100%, 760px);
+}
+
+.mentor-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 10px 24px;
+}
+
+.mentor-head select {
+  height: 34px;
+  max-width: 70vw;
+  padding: 0 8px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--surface);
+  color: var(--text);
+  font: inherit;
+}
+
+.ladder {
+  display: flex;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.ladder-phase {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  min-width: 64px;
+  padding: 4px 8px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  font-size: 0.75rem;
+  color: var(--text-muted);
+}
+
+.ladder-phase[data-state='active'] {
+  border-color: var(--accent);
+  color: var(--text);
+}
+
+.ladder-phase[data-state='done'] {
+  color: var(--left-hand);
+}
+
+.ladder-dots {
+  display: flex;
+  gap: 4px;
+}
+
+.ladder-dots i {
+  width: 7px;
+  height: 7px;
+  border: 1px solid var(--text-muted);
+  border-radius: 50%;
+}
+
+.ladder-dots i[data-state='done'] {
+  border-color: var(--left-hand);
+  background: var(--left-hand);
+}
+
+.ladder-dots i[data-state='active'] {
+  border-color: var(--accent);
+  background: var(--accent);
+}
+
+.mentor-stage {
+  margin: 0;
+  font-size: 0.8125rem;
+  color: var(--text-muted);
+}
+
+.mentor-bubble,
+.mentor-concept {
+  max-width: 62ch;
+  margin: 0;
+  padding: 10px 14px;
+  border-radius: var(--radius);
+  background: var(--surface);
+  font-size: 0.9375rem;
+  line-height: 1.6;
+  text-align: left;
+}
+
+.mentor-bubble strong {
+  color: var(--accent);
+}
+
+.mentor-concept {
+  border-left: 3px solid var(--accent);
+}
+
+.note-strip {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 6px;
+  min-height: 2.5rem;
+  font-size: 1.375rem;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+.note-strip span[data-state='done'] {
+  color: var(--text-muted);
+}
+
+.note-strip span[data-state='now'] {
+  padding: 0 6px;
+  border-bottom: 3px solid var(--accent);
+  color: var(--accent);
+}
+
+.note-prompt b {
+  font-size: 2.25rem;
+  color: var(--accent);
+}
+
+.mentor-feedback {
+  min-height: 1.4em;
+  margin: 0;
+  font-size: 0.9375rem;
+}
+
+.mentor-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 8px;
+}
+
+.btn-primary {
+  border-color: var(--accent);
+  background: var(--accent);
+  color: var(--accent-ink);
+  font-weight: 600;
+}
+
+.btn-primary:hover:not(:disabled) {
+  background: #f4c57a;
+}
+
+.btn-quiet {
+  border-color: transparent;
+  background: transparent;
+  color: var(--text-muted);
+}
+
+/* Keyboard marks: targets, hints, and press feedback. */
+.key-white.is-target {
+  background: linear-gradient(#fff3d9, #f6d79c);
+}
+
+.key-white.is-target[data-target-hand='L'] {
+  background: linear-gradient(#e2f6f2, #a9e0d6);
+}
+
+.key-black.is-target {
+  background: linear-gradient(#8a5d22, #4f3410);
+}
+
+.key-black.is-target[data-target-hand='L'] {
+  background: linear-gradient(#2f7f73, #17463f);
+}
+
+.key.is-blink {
+  animation: key-blink 0.6s ease-in-out 3;
+}
+
+@keyframes key-blink {
+  50% {
+    filter: brightness(0.75);
+  }
+}
+
+.key-finger {
+  position: absolute;
+  bottom: 38%;
+  display: grid;
+  place-items: center;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: var(--accent-ink);
+  color: var(--accent);
+  font-size: 0.75rem;
+  font-weight: 700;
+  pointer-events: none;
+}
+
+.key-black .key-finger {
+  bottom: 30%;
+  width: 18px;
+  height: 18px;
+  font-size: 0.6875rem;
+}
+
+/* Shape plus colour, so right and wrong never rely on colour alone. */
+.key.flash-ok::after,
+.key.flash-wrong::after {
+  position: absolute;
+  top: 10px;
+  font-size: 1.125rem;
+  font-weight: 700;
+  pointer-events: none;
+}
+
+.key.flash-ok::after {
+  content: '✓';
+  color: #2e9d57;
+}
+
+.key.flash-wrong::after {
+  content: '✕';
+  color: #d6453d;
+}
+
+.key-white.flash-wrong {
+  background: linear-gradient(#fbe1df, #f2b3ad);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .key.is-blink {
+    animation: none;
+    outline: 3px solid var(--accent);
+    outline-offset: -3px;
+  }
+}
+
+@media (max-height: 500px) {
+  .mentor-concept,
+  .mentor-stage {
+    display: none;
+  }
+
+  .mentor-bubble {
+    padding: 6px 10px;
+    font-size: 0.8125rem;
+  }
+}

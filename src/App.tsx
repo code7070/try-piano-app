@@ -10,12 +10,20 @@ import {
 import { NoteTracker } from './input/NoteTracker.ts'
 import { noteName, visibleRange } from './music/notes.ts'
 import { Keyboard } from './ui/Keyboard.tsx'
-import type { LabelMode } from './ui/Keyboard.tsx'
+import type { KeyFlash, KeyTarget, LabelMode } from './ui/Keyboard.tsx'
+import { MentorScreen } from './ui/MentorScreen.tsx'
 import './ui/piano.css'
 
 const coarsePointer =
   typeof window !== 'undefined' &&
   window.matchMedia?.('(pointer: coarse)').matches
+
+type View = 'mentor' | 'free'
+
+const VIEW_OPTIONS: { value: View; text: string }[] = [
+  { value: 'mentor', text: 'Mentor' },
+  { value: 'free', text: 'Main Bebas' },
+]
 
 const LABEL_OPTIONS: { value: LabelMode; text: string }[] = [
   { value: 'note', text: 'Nada' },
@@ -61,6 +69,9 @@ function App() {
     coarsePointer ? 'note' : 'keys',
   )
   const [held, setHeld] = useState<number[]>([])
+  const [view, setView] = useState<View>('mentor')
+  const [targets, setTargets] = useState<KeyTarget[]>([])
+  const [flash, setFlash] = useState<KeyFlash | null>(null)
   const keyboardRef = useRef<HTMLDivElement>(null)
   const octaveShiftRef = useRef(octaveShift)
   const width = useWidth(keyboardRef)
@@ -84,6 +95,12 @@ function App() {
     },
     [tracker],
   )
+
+  function switchView(next: View) {
+    // Lessons are written for the default laptop range (PRD FR-120).
+    if (next === 'mentor') shiftOctave(-octaveShiftRef.current)
+    setView(next)
+  }
 
   useEffect(() => synth.setSustain(sustainOn), [synth, sustainOn])
   useEffect(() => synth.setVolume(volume), [synth, volume])
@@ -152,32 +169,48 @@ function App() {
         </div>
 
         <div className="controls">
-          <div className="control">
-            <span>Oktaf</span>
-            <div className="stepper">
+          <div className="segmented" role="radiogroup" aria-label="Mode">
+            {VIEW_OPTIONS.map((option) => (
               <button
+                key={option.value}
                 type="button"
-                className="btn"
-                aria-label="Geser oktaf turun"
-                disabled={octaveShift === MIN_OCTAVE_SHIFT}
-                onClick={() => shiftOctave(-1)}
+                role="radio"
+                aria-checked={view === option.value}
+                onClick={() => switchView(option.value)}
               >
-                ‹
+                {option.text}
               </button>
-              <span className="stepper-value">
-                {noteName(mappedLow)}–{noteName(mappedHigh)}
-              </span>
-              <button
-                type="button"
-                className="btn"
-                aria-label="Geser oktaf naik"
-                disabled={octaveShift === MAX_OCTAVE_SHIFT}
-                onClick={() => shiftOctave(1)}
-              >
-                ›
-              </button>
-            </div>
+            ))}
           </div>
+
+          {view === 'free' && (
+            <div className="control">
+              <span>Oktaf</span>
+              <div className="stepper">
+                <button
+                  type="button"
+                  className="btn"
+                  aria-label="Geser oktaf turun"
+                  disabled={octaveShift === MIN_OCTAVE_SHIFT}
+                  onClick={() => shiftOctave(-1)}
+                >
+                  ‹
+                </button>
+                <span className="stepper-value">
+                  {noteName(mappedLow)}–{noteName(mappedHigh)}
+                </span>
+                <button
+                  type="button"
+                  className="btn"
+                  aria-label="Geser oktaf naik"
+                  disabled={octaveShift === MAX_OCTAVE_SHIFT}
+                  onClick={() => shiftOctave(1)}
+                >
+                  ›
+                </button>
+              </div>
+            </div>
+          )}
 
           <button
             type="button"
@@ -200,22 +233,24 @@ function App() {
             />
           </label>
 
-          <div className="control">
-            <span>Label</span>
-            <div className="segmented" role="radiogroup" aria-label="Label">
-              {LABEL_OPTIONS.map((option) => (
-                <button
-                  key={option.value}
-                  type="button"
-                  role="radio"
-                  aria-checked={labelMode === option.value}
-                  onClick={() => setLabelMode(option.value)}
-                >
-                  {option.text}
-                </button>
-              ))}
+          {view === 'free' && (
+            <div className="control">
+              <span>Label</span>
+              <div className="segmented" role="radiogroup" aria-label="Label">
+                {LABEL_OPTIONS.map((option) => (
+                  <button
+                    key={option.value}
+                    type="button"
+                    role="radio"
+                    aria-checked={labelMode === option.value}
+                    onClick={() => setLabelMode(option.value)}
+                  >
+                    {option.text}
+                  </button>
+                ))}
+              </div>
             </div>
-          </div>
+          )}
         </div>
       </header>
 
@@ -226,15 +261,27 @@ function App() {
             diputar. Coba Chrome, Edge, Firefox, atau Safari terbaru.
           </p>
         )}
-        <output className="now-playing" aria-live="polite">
-          {held.length > 0 ? held.map(noteName).join(' ') : '—'}
-        </output>
-        <p className="hint">
-          Klik atau sentuh tuts. Di laptop: <kbd>Z</kbd>–<kbd>/</kbd> tangan
-          kiri, <kbd>Q</kbd>–<kbd>]</kbd> tangan kanan (baris di atasnya untuk
-          tuts hitam), <kbd>Space</kbd> sustain, <kbd>←</kbd> <kbd>→</kbd> geser
-          oktaf.
-        </p>
+        {view === 'mentor' ? (
+          <MentorScreen
+            sink={synth}
+            tracker={tracker}
+            octaveShift={octaveShift}
+            onTargets={setTargets}
+            onFlash={setFlash}
+          />
+        ) : (
+          <>
+            <output className="now-playing" aria-live="polite">
+              {held.length > 0 ? held.map(noteName).join(' ') : '—'}
+            </output>
+            <p className="hint">
+              Klik atau sentuh tuts. Di laptop: <kbd>Z</kbd>–<kbd>/</kbd> tangan
+              kiri, <kbd>Q</kbd>–<kbd>]</kbd> tangan kanan (baris di atasnya
+              untuk tuts hitam), <kbd>Space</kbd> sustain, <kbd>←</kbd>{' '}
+              <kbd>→</kbd> geser oktaf.
+            </p>
+          </>
+        )}
       </main>
 
       <div className="keyboard-wrap" ref={keyboardRef}>
@@ -242,8 +289,12 @@ function App() {
           first={first}
           last={last}
           octaveShift={octaveShift}
-          labelMode={labelMode}
+          labelMode={
+            view === 'free' ? labelMode : coarsePointer ? 'none' : 'keys'
+          }
           tracker={tracker}
+          targets={view === 'mentor' ? targets : undefined}
+          flash={view === 'mentor' ? flash : null}
         />
       </div>
     </div>

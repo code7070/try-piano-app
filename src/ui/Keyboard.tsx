@@ -6,12 +6,30 @@ import { isBlackKey, noteName } from '../music/notes.ts'
 
 export type LabelMode = 'note' | 'keys' | 'none'
 
+/** A key the lesson wants pressed, with the help shown on it. */
+export interface KeyTarget {
+  midi: number
+  hand: 'L' | 'R'
+  finger?: number
+  letter: boolean
+  keys: boolean
+  blink: boolean
+}
+
+export interface KeyFlash {
+  midi: number
+  kind: 'ok' | 'wrong'
+  id: number
+}
+
 interface KeyboardProps {
   first: number
   last: number
   octaveShift: number
   labelMode: LabelMode
   tracker: NoteTracker
+  targets?: KeyTarget[]
+  flash?: KeyFlash | null
 }
 
 function keyAt(x: number, y: number): number | null {
@@ -27,6 +45,8 @@ export function Keyboard({
   octaveShift,
   labelMode,
   tracker,
+  targets = [],
+  flash = null,
 }: KeyboardProps) {
   const keyEls = useRef(new Map<number, HTMLElement>())
   const activePointers = useRef(new Set<number>())
@@ -39,6 +59,18 @@ export function Keyboard({
       keyEls.current.get(midi)?.classList.toggle('is-down', down),
     )
   }, [tracker, first, last])
+
+  useEffect(() => {
+    const el = flash && keyEls.current.get(flash.midi)
+    if (!flash || !el) return
+    const className = `flash-${flash.kind}`
+    el.classList.add(className)
+    const timer = window.setTimeout(() => el.classList.remove(className), 350)
+    return () => {
+      window.clearTimeout(timer)
+      el.classList.remove(className)
+    }
+  }, [flash])
 
   function follow(event: PointerEvent<HTMLDivElement>) {
     const source = `p:${event.pointerId}`
@@ -63,6 +95,7 @@ export function Keyboard({
     tracker.release(`p:${event.pointerId}`)
   }
 
+  const targetByMidi = new Map(targets.map((target) => [target.midi, target]))
   const midis = Array.from({ length: last - first + 1 }, (_, i) => first + i)
   const whiteWidth = 100 / midis.filter((midi) => !isBlackKey(midi)).length
   const blackWidth = whiteWidth * 0.6
@@ -71,8 +104,13 @@ export function Keyboard({
   const keys = midis.map((midi) => {
     const black = isBlackKey(midi)
     const name = noteName(midi)
-    const labels =
-      labelMode === 'note'
+    const target = targetByMidi.get(midi)
+    const labels = target
+      ? [
+          ...(target.letter ? [name.replace(/-?\d+$/, '')] : []),
+          ...(target.keys ? keyLabels(midi, octaveShift).slice(0, 1) : []),
+        ]
+      : labelMode === 'note'
         ? black
           ? []
           : [name.startsWith('C') ? name : name[0]]
@@ -93,12 +131,25 @@ export function Keyboard({
           if (el) keyEls.current.set(midi, el)
           else keyEls.current.delete(midi)
         }}
-        className={black ? 'key key-black' : 'key key-white'}
+        className={[
+          'key',
+          black ? 'key-black' : 'key-white',
+          target && 'is-target',
+          target?.blink && 'is-blink',
+        ]
+          .filter(Boolean)
+          .join(' ')}
         data-midi={midi}
         data-hand={handFor(midi, octaveShift) ?? undefined}
-        aria-label={name}
+        data-target-hand={target?.hand}
+        aria-label={target ? `${name}, tuts target` : name}
         style={style}
       >
+        {target?.finger && (
+          <span className="key-finger" aria-label={`jari ${target.finger}`}>
+            {target.finger}
+          </span>
+        )}
         {labels.map((label) => (
           <span key={label} className="key-label">
             {label}
