@@ -1,5 +1,11 @@
-import { useCallback, useEffect, useRef, useState } from 'react'
-import type { RefObject } from 'react'
+import {
+  useCallback,
+  useEffect,
+  useLayoutEffect,
+  useRef,
+  useState,
+} from 'react'
+import type { KeyboardEvent as ReactKeyboardEvent, RefObject } from 'react'
 import { createSynth, isAudioSupported } from './audio/synth.ts'
 import {
   codeToMidi,
@@ -30,6 +36,30 @@ const LABEL_OPTIONS: { value: LabelMode; text: string }[] = [
   { value: 'keys', text: 'Tombol' },
   { value: 'none', text: 'Kosong' },
 ]
+
+const ARROW_STEP: Record<string, number> = {
+  ArrowLeft: -1,
+  ArrowUp: -1,
+  ArrowRight: 1,
+  ArrowDown: 1,
+}
+
+/** Arrow keys move the selection inside a radiogroup, wrapping at the ends. */
+function onRadioKeyDown<T>(
+  event: ReactKeyboardEvent<HTMLDivElement>,
+  options: { value: T }[],
+  current: T,
+  select: (value: T) => void,
+) {
+  const step = ARROW_STEP[event.key]
+  if (!step) return
+  event.preventDefault()
+  const index = options.findIndex((option) => option.value === current)
+  const next = (index + step + options.length) % options.length
+  select(options[next].value)
+  const button = event.currentTarget.children[next]
+  if (button instanceof HTMLElement) button.focus()
+}
 
 function isTypingTarget(target: EventTarget | null): boolean {
   if (!(target instanceof HTMLElement)) return false
@@ -74,12 +104,16 @@ function App() {
   const [flash, setFlash] = useState<KeyFlash | null>(null)
   const keyboardRef = useRef<HTMLDivElement>(null)
   const octaveShiftRef = useRef(octaveShift)
+  const slideDirection = useRef(0)
   const width = useWidth(keyboardRef)
 
   const sustainOn = sustainLatched || spaceHeld
   const whiteCount = Math.min(Math.floor(width / (coarsePointer ? 44 : 34)), 36)
   const { first, last } = visibleRange(whiteCount, octaveShift)
-  const [mappedLow, mappedHigh] = mappedRange(octaveShift)
+  // Touch players never see the laptop mapping, so show the keys on screen.
+  const [rangeLow, rangeHigh] = coarsePointer
+    ? [first, last]
+    : mappedRange(octaveShift)
 
   const shiftOctave = useCallback(
     (delta: number) => {
@@ -102,6 +136,32 @@ function App() {
     setView(next)
   }
 
+  function shiftOctaveFromButton(delta: number) {
+    slideDirection.current = delta
+    shiftOctave(delta)
+  }
+
+  // Slides the keys in from the side they came from. Arrow-key shifts skip
+  // this: they are frequent and must feel instant.
+  useLayoutEffect(() => {
+    const direction = slideDirection.current
+    slideDirection.current = 0
+    const el = keyboardRef.current
+    if (direction === 0 || !el || typeof el.animate !== 'function') return
+    const reduce = window.matchMedia?.(
+      '(prefers-reduced-motion: reduce)',
+    ).matches
+    el.animate(
+      reduce
+        ? [{ opacity: 0.4 }, { opacity: 1 }]
+        : [
+            { transform: `translateX(${direction * 4}%)`, opacity: 0.4 },
+            { transform: 'none', opacity: 1 },
+          ],
+      { duration: 180, easing: 'cubic-bezier(0.23, 1, 0.32, 1)' },
+    )
+  }, [octaveShift])
+
   useEffect(() => synth.setSustain(sustainOn), [synth, sustainOn])
   useEffect(() => synth.setVolume(volume), [synth, volume])
   useEffect(
@@ -119,7 +179,11 @@ function App() {
         return
       }
       if (event.code === 'ArrowLeft' || event.code === 'ArrowRight') {
-        if (event.target instanceof HTMLInputElement) return
+        if (
+          event.target instanceof HTMLElement &&
+          event.target.closest('input, [role="radiogroup"]')
+        )
+          return
         event.preventDefault()
         if (!event.repeat) shiftOctave(event.code === 'ArrowLeft' ? -1 : 1)
         return
@@ -169,13 +233,21 @@ function App() {
         </div>
 
         <div className="controls">
-          <div className="segmented" role="radiogroup" aria-label="Mode">
+          <div
+            className="segmented"
+            role="radiogroup"
+            aria-label="Mode"
+            onKeyDown={(event) =>
+              onRadioKeyDown(event, VIEW_OPTIONS, view, switchView)
+            }
+          >
             {VIEW_OPTIONS.map((option) => (
               <button
                 key={option.value}
                 type="button"
                 role="radio"
                 aria-checked={view === option.value}
+                tabIndex={view === option.value ? 0 : -1}
                 onClick={() => switchView(option.value)}
               >
                 {option.text}
@@ -192,19 +264,19 @@ function App() {
                   className="btn"
                   aria-label="Geser oktaf turun"
                   disabled={octaveShift === MIN_OCTAVE_SHIFT}
-                  onClick={() => shiftOctave(-1)}
+                  onClick={() => shiftOctaveFromButton(-1)}
                 >
                   ‹
                 </button>
                 <span className="stepper-value">
-                  {noteName(mappedLow)}–{noteName(mappedHigh)}
+                  {noteName(rangeLow)}–{noteName(rangeHigh)}
                 </span>
                 <button
                   type="button"
                   className="btn"
                   aria-label="Geser oktaf naik"
                   disabled={octaveShift === MAX_OCTAVE_SHIFT}
-                  onClick={() => shiftOctave(1)}
+                  onClick={() => shiftOctaveFromButton(1)}
                 >
                   ›
                 </button>
@@ -236,13 +308,21 @@ function App() {
           {view === 'free' && (
             <div className="control">
               <span>Label</span>
-              <div className="segmented" role="radiogroup" aria-label="Label">
+              <div
+                className="segmented"
+                role="radiogroup"
+                aria-label="Label"
+                onKeyDown={(event) =>
+                  onRadioKeyDown(event, LABEL_OPTIONS, labelMode, setLabelMode)
+                }
+              >
                 {LABEL_OPTIONS.map((option) => (
                   <button
                     key={option.value}
                     type="button"
                     role="radio"
                     aria-checked={labelMode === option.value}
+                    tabIndex={labelMode === option.value ? 0 : -1}
                     onClick={() => setLabelMode(option.value)}
                   >
                     {option.text}
@@ -271,15 +351,20 @@ function App() {
           />
         ) : (
           <>
-            <output className="now-playing" aria-live="polite">
+            {/* Announcing every note would flood screen readers mid-play. */}
+            <output className="now-playing" aria-live="off">
               {held.length > 0 ? held.map(noteName).join(' ') : '—'}
             </output>
-            <p className="hint">
-              Klik atau sentuh tuts. Di laptop: <kbd>Z</kbd>–<kbd>/</kbd> tangan
-              kiri, <kbd>Q</kbd>–<kbd>]</kbd> tangan kanan (baris di atasnya
-              untuk tuts hitam), <kbd>Space</kbd> sustain, <kbd>←</kbd>{' '}
-              <kbd>→</kbd> geser oktaf.
-            </p>
+            {coarsePointer ? (
+              <p className="hint">Sentuh tuts untuk bermain.</p>
+            ) : (
+              <p className="hint">
+                Klik atau sentuh tuts. Di laptop: <kbd>Z</kbd>–<kbd>/</kbd>{' '}
+                tangan kiri, <kbd>Q</kbd>–<kbd>]</kbd> tangan kanan (baris di
+                atasnya untuk tuts hitam), <kbd>Space</kbd> sustain,{' '}
+                <kbd>←</kbd> <kbd>→</kbd> geser oktaf.
+              </p>
+            )}
           </>
         )}
       </main>
@@ -293,6 +378,7 @@ function App() {
             view === 'free' ? labelMode : coarsePointer ? 'none' : 'keys'
           }
           tracker={tracker}
+          sustain={sustainOn}
           targets={view === 'mentor' ? targets : undefined}
           flash={view === 'mentor' ? flash : null}
         />

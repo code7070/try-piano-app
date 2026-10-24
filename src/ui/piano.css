@@ -60,11 +60,27 @@
   background: var(--surface);
   color: var(--text);
   cursor: pointer;
+  transition: transform 120ms var(--ease-out);
 }
 
-.btn:hover:not(:disabled),
-.segmented button:hover {
-  background: var(--surface-hover);
+/* Touch screens fire hover on tap and leave it stuck. */
+@media (hover: hover) and (pointer: fine) {
+  .btn:hover:not(:disabled),
+  .segmented button:hover {
+    background: var(--surface-hover);
+  }
+}
+
+.btn:active:not(:disabled),
+.segmented button:active {
+  transform: scale(0.97);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .btn:active:not(:disabled),
+  .segmented button:active {
+    transform: none;
+  }
 }
 
 .btn:disabled {
@@ -236,6 +252,15 @@ kbd {
 .key-black.is-down {
   background: linear-gradient(#a8722a, #6f4714);
   box-shadow: inset 0 -2px 0 #4a2f0c;
+}
+
+/* Released while the sustain pedal holds the note. */
+.key-white.is-ringing:not(.is-target) {
+  background: linear-gradient(#f9efdc, #eedcbc);
+}
+
+.key-black.is-ringing:not(.is-target) {
+  background: linear-gradient(#4f3d24, #2a1f10);
 }
 
 .key[data-hand]::before {

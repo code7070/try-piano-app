@@ -28,6 +28,7 @@ interface KeyboardProps {
   octaveShift: number
   labelMode: LabelMode
   tracker: NoteTracker
+  sustain: boolean
   targets?: KeyTarget[]
   flash?: KeyFlash | null
 }
@@ -45,20 +46,38 @@ export function Keyboard({
   octaveShift,
   labelMode,
   tracker,
+  sustain,
   targets = [],
   flash = null,
 }: KeyboardProps) {
   const keyEls = useRef(new Map<number, HTMLElement>())
   const activePointers = useRef(new Set<number>())
+  // Notes let go while the pedal is down keep sounding, so they stay marked.
+  const ringing = useRef(new Set<number>())
+  const sustainRef = useRef(sustain)
 
   // Highlight via class toggles so playing never re-renders the keyboard.
   useEffect(() => {
-    for (const [midi, el] of keyEls.current)
+    for (const [midi, el] of keyEls.current) {
       el.classList.toggle('is-down', tracker.isDown(midi))
-    return tracker.subscribe((midi, down) =>
-      keyEls.current.get(midi)?.classList.toggle('is-down', down),
-    )
+      el.classList.toggle('is-ringing', ringing.current.has(midi))
+    }
+    return tracker.subscribe((midi, down) => {
+      if (down) ringing.current.delete(midi)
+      else if (sustainRef.current) ringing.current.add(midi)
+      const el = keyEls.current.get(midi)
+      el?.classList.toggle('is-down', down)
+      el?.classList.toggle('is-ringing', ringing.current.has(midi))
+    })
   }, [tracker, first, last])
+
+  useEffect(() => {
+    sustainRef.current = sustain
+    if (sustain) return
+    for (const midi of ringing.current)
+      keyEls.current.get(midi)?.classList.remove('is-ringing')
+    ringing.current.clear()
+  }, [sustain])
 
   useEffect(() => {
     const el = flash && keyEls.current.get(flash.midi)

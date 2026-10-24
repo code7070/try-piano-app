@@ -17,6 +17,7 @@
   --left-hand: #4fb8a8;
   --right-hand: #eeb35b;
   --radius: 10px;
+  --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
 
   background: var(--bg);
   color: var(--text);

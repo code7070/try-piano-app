@@ -150,8 +150,10 @@
   font-weight: 600;
 }
 
-.btn-primary:hover:not(:disabled) {
-  background: #f4c57a;
+@media (hover: hover) and (pointer: fine) {
+  .btn-primary:hover:not(:disabled) {
+    background: #f4c57a;
+  }
 }
 
 .btn-quiet {
