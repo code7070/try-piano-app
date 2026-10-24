@@ -1,0 +1,8 @@
+#!/bin/sh
+# Runs a command with this project's Cloudflare login (stored in .wrangler-auth/)
+# instead of the machine-wide wrangler login. Only the wrapped command sees it.
+# Usage: scripts/with-wrangler-auth npx wrangler login
+#        scripts/with-wrangler-auth npm run deploy
+set -eu
+root=$(CDPATH= cd -- "$(dirname -- "$0")/.." && pwd)
+XDG_CONFIG_HOME="$root/.wrangler-auth" exec "$@"
