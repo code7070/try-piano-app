@@ -2,6 +2,8 @@
 
 A browser app for learning and practising piano from zero. It runs fully client-side and is served from Cloudflare Workers Static Assets.
 
+Live: https://piano.the-friday.my.id
+
 Product requirements and the task list are in [`PRD/prd-web-piano.md`](PRD/prd-web-piano.md).
 
 ## Stack
@@ -48,14 +50,14 @@ scripts/with-wrangler-auth npx wrangler login
 scripts/with-wrangler-auth npm run deploy
 ```
 
-### Git-connected builds (recommended)
+### Git-connected builds
 
-After the repository is on GitHub, connect it in the Cloudflare dashboard (Workers & Pages → the `piano` Worker → Settings → Builds) with:
+The `piano` Worker (account `Azizditya@gmail.com's Account`) is connected to `code7070/try-piano-app` through Workers Builds:
 
-| Setting                       | Value                            |
-| ----------------------------- | -------------------------------- |
-| Build command                 | `npm run check && npm run build` |
-| Deploy command                | `npx wrangler deploy`            |
-| Non-production branch deploys | `npx wrangler versions upload`   |
+| Setting         | Value                            |
+| --------------- | -------------------------------- |
+| Build command   | `npm run check && npm run build` |
+| Deploy command  | `npx wrangler deploy`            |
+| Preview command | `npx wrangler preview`           |
 
-Pushes to `main` deploy to production. Other branches get a preview URL (`preview_urls: true`).
+Pushes to `main` deploy to production at `piano.the-friday.my.id` (declared in `routes` in `wrangler.jsonc`; the `workers.dev` URL is off). Other branches run Preview builds.
