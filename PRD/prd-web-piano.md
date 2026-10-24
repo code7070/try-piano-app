@@ -704,15 +704,15 @@ merge ke main ────────► Workers Builds: npm run check && npm r
 
 | Status | Count |
 |--------|-------|
-| Done | 16 |
-| In Progress | 4 |
-| Pending | 78 |
+| Done | 21 |
+| In Progress | 13 |
+| Pending | 64 |
 | Blocked | 0 |
 | **Total** | **98** |
 
-**Overall Progress:** 16%
+**Overall Progress:** 21%
 
-`[███░░░░░░░░░░░░░░░░░] 16%`
+`[████░░░░░░░░░░░░░░░░] 21%`
 
 **Maintenance Protocol**
 1. Setelah task selesai, langsung ubah statusnya di file ini (Pending → ✅ Done).
@@ -753,7 +753,7 @@ merge ke main ────────► Workers Builds: npm run check && npm r
 |---|------|--------|-------|
 | 3.1 | Create util nada (MIDI ↔ huruf ↔ solfège ↔ not angka ↔ frekuensi ↔ putih/hitam) + unit test | In Progress | Huruf, frekuensi, putih/hitam + test selesai; solfège & not angka belum |
 | 3.2 | Implement komponen `Keyboard`: render rentang dinamis dengan posisi tuts hitam proporsional | ✅ Done | FR-010; `src/ui/Keyboard.tsx` |
-| 3.3 | Implement highlight via DOM ref (state "ditekan" vs "target") tanpa re-render seluruh keyboard | ✅ Done | FR-012; Toggle class `is-down` lewat subscribe `NoteTracker`; state "target" menyusul di Lesson Player |
+| 3.3 | Implement highlight via DOM ref (state "ditekan" vs "target") tanpa re-render seluruh keyboard | ✅ Done | FR-012; Toggle class `is-down` lewat subscribe `NoteTracker`; target (menyala, huruf, jari, tombol, kedip) + kilas ✓/✕ dari Mentor |
 | 3.4 | Add mode label (huruf/solfège/angka/tombol/jari) + penanda C4 | In Progress | FR-013; Mode huruf/tombol/kosong + penanda oktaf di C; solfège/angka/jari belum |
 | 3.5 | Implement kalkulasi jumlah tuts terlihat dari lebar viewport (resize-aware) | ✅ Done | FR-011; `visibleRange` + ResizeObserver |
 
@@ -764,7 +764,7 @@ merge ke main ────────► Workers Builds: npm run check && npm r
 | 4.1 | Implement `InputManager` + Pointer Events per `pointerId`, timestamp dikonversi ke waktu AudioContext | In Progress | FR-020, FR-028; `NoteTracker` + Pointer Events per `pointerId` selesai; konversi timestamp ke waktu audio belum |
 | 4.2 | Implement glissando (hit-test saat `pointermove`) | ✅ Done | FR-021; Hit-test `elementFromPoint` saat `pointermove` |
 | 4.3 | Implement mapping keyboard laptop mode dua tangan berbasis `code`, abaikan auto-repeat, nonaktif di input teks | ✅ Done | FR-022, FR-024, FR-027; `src/input/keyboardMap.ts`, abaikan repeat & modifier, nonaktif di input teks |
-| 4.4 | Add shortcut `←`/`→` geser rentang, `Space` sustain, `Esc` jeda | In Progress | FR-023; `←`/`→` dan `Space` selesai; `Esc` menyusul bersama Lesson Player |
+| 4.4 | Add shortcut `←`/`→` geser rentang, `Space` sustain, `Esc` jeda | ✅ Done | FR-023; `←`/`→` dan `Space` di Main Bebas; `Esc` menghentikan tahap di Mentor |
 | 4.5 | Disable gesture browser di area keyboard | ✅ Done | FR-026; touch-action, user-select, callout, contextmenu |
 | 4.6 | Handle stuck note: blur, `visibilitychange`, `pointercancel`, geser rentang saat menekan | ✅ Done | FR-025; releaseAll pada blur, tab tersembunyi, pointercancel, geser oktaf |
 
@@ -782,14 +782,14 @@ merge ke main ────────► Workers Builds: npm run check && npm r
 
 | # | Task | Status | Notes |
 |---|------|--------|-------|
-| 6.1 | Define skema `Song`/`Lesson` dengan zod + validasi konten saat build | Pending | FR-120 |
+| 6.1 | Define skema `Song`/`Lesson` dengan zod + validasi konten saat build | In Progress | FR-120; Tipe TS + konten di `src/content/lessons.ts` dengan test rentang & jari; JSON + zod belum |
 | 6.2 | Implement `Transport` (clock AudioContext, play/pause/seek/advance, count-in) + scheduler lookahead | Pending | |
 | 6.3 | Implement `Metronome` (BPM, birama, aksen, pulsa visual) | Pending | FR-106 |
-| 6.4 | Implement `AutoPlayer` untuk demo dengan highlight target & nomor jari | Pending | FR-101 |
-| 6.5 | Implement `NoteMatcher` mode tunggu (nada tunggal & akor dalam jendela 300 ms) + `HintPolicy` | Pending | FR-102, FR-103 |
+| 6.4 | Implement `AutoPlayer` untuk demo dengan highlight target & nomor jari | In Progress | FR-101; `src/lesson/demo.ts` berbasis timer dengan tuts menyala + jari; pindah ke `Transport` saat 6.2 |
+| 6.5 | Implement `NoteMatcher` mode tunggu (nada tunggal & akor dalam jendela 300 ms) + `HintPolicy` | ✅ Done | FR-102, FR-103; `src/lesson/waitMatcher.ts` + `scorer.ts`; hint kedip setelah 1× salah, jari & tombol setelah 3× |
 | 6.6 | Implement renderer falling notes (canvas) sinkron dengan Transport, warna per tangan | Pending | FR-104 |
-| 6.7 | Create layar Lesson Player (Konsep → Dengarkan → Coba pelan → Hasil) | Pending | FR-100 |
-| 6.8 | Create layar Hasil: akurasi, ≤ 3 titik masalah, self-check, saran aksi | Pending | FR-105, FR-124 |
+| 6.7 | Create layar Lesson Player (Konsep → Dengarkan → Coba pelan → Hasil) | In Progress | FR-100; Dijalankan lewat layar Mentor (Paham → Dengar → Tiru); falling notes belum |
+| 6.8 | Create layar Hasil: akurasi, ≤ 3 titik masalah, self-check, saran aksi | In Progress | FR-105; Akurasi + titik masalah terburuk di pesan mentor; layar Hasil penuh & self-check belum |
 
 ### Phase 7: Kurikulum & Konten Level 0–1
 
@@ -797,8 +797,8 @@ merge ke main ────────► Workers Builds: npm run check && npm r
 |---|------|--------|-------|
 | 7.1 | Write outline kurikulum Level 0–4: tujuan, materi, syarat lulus per pelajaran | Pending | Minta review musisi |
 | 7.2 | Create script `midi-to-song`: konversi MIDI → JSON, anotasi tangan/jari, validasi rentang C3–E5 | Pending | |
-| 7.3 | Create 5 pelajaran Level 0 (pola tuts hitam, temukan C/nada lain, nomor jari, postur + self-check) | Pending | `kind: find-note` |
-| 7.4 | Create 7 pelajaran Level 1 + 4 lagu public domain dengan nomor jari | Pending | FR-123 |
+| 7.3 | Create 5 pelajaran Level 0 (pola tuts hitam, temukan C/nada lain, nomor jari, postur + self-check) | In Progress | `kind: find-note`; 3 dari 5: Temukan C; C, D, E; F, G, A, B |
+| 7.4 | Create 7 pelajaran Level 1 + 4 lagu public domain dengan nomor jari | In Progress | FR-123; 2 pelajaran + 2 lagu: Mary Had a Little Lamb, Ode to Joy (tangan kanan) |
 | 7.5 | Playtest Level 0–1 sebagai pemula total, revisi urutan & tingkat kesulitan | Pending | Jojo jadi tester pertama |
 
 ### Phase 8: Progres
@@ -813,13 +813,13 @@ merge ke main ────────► Workers Builds: npm run check && npm r
 
 | # | Task | Status | Notes |
 |---|------|--------|-------|
-| 19.1 | Define tipe `StageId`/`StageSpec`/`Support`, tangga default per `kind`, field `ladder` opsional di skema `Lesson` | Pending | FR-161 |
-| 19.2 | Implement `MentorEngine` (`nextStep`, `evaluate`: lulus, gagal, remediasi, loncat) sebagai fungsi murni + unit test | Pending | FR-162, FR-164, FR-167 |
-| 19.3 | Implement level bantuan S3–S0 di `Keyboard`, `Waterfall`, `HintPolicy` + aturan naik/turun adaptif | Pending | FR-163 |
-| 19.4 | Persist `mentorState` di IndexedDB + field `stage`/`support`/`bars` di `Attempt` | Pending | FR-130 |
-| 19.5 | Create layar Mentor: progres tangga, pesan mentor, Mulai/Ulangi/Lewati, membungkus Lesson Player | Pending | FR-160, FR-167 |
-| 19.6 | Write template pesan mentor (pembuka, instruksi tahap, feedback titik masalah, rekap + PR) di `i18n/id.ts` | Pending | FR-165, FR-166 |
-| 19.7 | Hubungkan "Lanjutkan" di Beranda & Peta Belajar ke sesi mentor; titik mulai untuk pengguna "pernah sedikit" | Pending | FR-160, FR-167 |
+| 19.1 | Define tipe `StageId`/`StageSpec`/`Support`, tangga default per `kind`, field `ladder` opsional di skema `Lesson` | In Progress | FR-161; `src/mentor/ladder.ts`; override `Lesson.ladder` belum |
+| 19.2 | Implement `MentorEngine` (`nextStep`, `evaluate`: lulus, gagal, remediasi, loncat) sebagai fungsi murni + unit test | ✅ Done | FR-162, FR-164, FR-167; `src/mentor/engine.ts` + `engine.test.ts` |
+| 19.3 | Implement level bantuan S3–S0 di `Keyboard`, `Waterfall`, `HintPolicy` + aturan naik/turun adaptif | In Progress | FR-163; S3–S0 di keyboard + strip huruf; S1 memakai strip huruf sampai falling notes (6.6) ada |
+| 19.4 | Persist `mentorState` di IndexedDB + field `stage`/`support`/`bars` di `Attempt` | In Progress | FR-130; Sementara di localStorage `piano.mentor.v1` (`src/mentor/progress.ts`); IndexedDB & field `Attempt` menyusul 8.1 |
+| 19.5 | Create layar Mentor: progres tangga, pesan mentor, Mulai/Ulangi/Lewati, membungkus Lesson Player | ✅ Done | FR-160, FR-167; `src/ui/MentorScreen.tsx`, tab default di app |
+| 19.6 | Write template pesan mentor (pembuka, instruksi tahap, feedback titik masalah, rekap + PR) di `i18n/id.ts` | ✅ Done | FR-165, FR-166; `src/i18n/id.ts` |
+| 19.7 | Hubungkan "Lanjutkan" di Beranda & Peta Belajar ke sesi mentor; titik mulai untuk pengguna "pernah sedikit" | In Progress | FR-160, FR-167; Mentor jadi tab default dan memilih pelajaran terakhir; Beranda, Peta Belajar & titik mulai "pernah sedikit" belum |
 | 19.8 | Playtest tangga Level 0–1 bersama mentor, tuning ambang lulus & aturan remediasi | Pending | Jojo jadi tester pertama |
 
 ### Phase 9: Testing & QA 1.0
