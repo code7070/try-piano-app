@@ -189,7 +189,7 @@ Sebuah web app **tidak bisa menggantikan piano fisik sepenuhnya**. Batas ini dit
 |----|-------------|----------|-------|--------|
 | FR-020 | Pointer Events terpadu (mouse/touch/pen), dilacak per `pointerId`. | P0 | 1.0 | Pending |
 | FR-021 | Glissando: menggeser pointer ke tuts lain me-release tuts lama dan menekan tuts baru. | P0 | 1.0 | Pending |
-| FR-022 | Keyboard laptop **mode dua tangan** berbasis `KeyboardEvent.code`: baris bawah untuk tangan kiri (C3–B3), baris atas & angka untuk tangan kanan (C4–E5). Lihat Appendix 8.2. | P0 | 1.0 | Pending |
+| FR-022 | Keyboard laptop **mode dua tangan** berbasis `KeyboardEvent.code`: baris bawah untuk tangan kiri (C3–E4), baris atas & angka untuk tangan kanan (C4–G5); tiap baris bisa memainkan satu tangga nada penuh do–do, dan C4–E4 bisa dari kedua baris. Lihat Appendix 8.2. | P0 | 1.0 | Pending |
 | FR-023 | Shortcut: `←`/`→` geser rentang 1 oktaf, `Space` sustain, `Esc` jeda pelajaran. | P0 | 1.0 | Pending |
 | FR-024 | Auto-repeat keyboard diabaikan; satu tekan fisik = satu note-on. | P0 | 1.0 | Pending |
 | FR-025 | Semua nada di-release saat blur, tab tersembunyi, `pointercancel`, atau rentang digeser saat tombol ditekan. | P0 | 1.0 | Pending |
@@ -982,15 +982,15 @@ merge ke main ────────► Workers Builds: npm run check && npm r
 
 ### 8.2 Keyboard Mapping — Mode Dua Tangan (default)
 
-**Tangan kiri: C3–B3**
-| Tuts putih | `Z` C3 | `X` D3 | `C` E3 | `V` F3 | `B` G3 | `N` A3 | `M` B3 |
-|---|---|---|---|---|---|---|---|
-| **Tuts hitam** | `S` C#3 | `D` D#3 | | `G` F#3 | `H` G#3 | `J` A#3 | |
-
-**Tangan kanan: C4–E5**
-| Tuts putih | `Q` C4 | `W` D4 | `E` E4 | `R` F4 | `T` G4 | `Y` A4 | `U` B4 | `I` C5 | `O` D5 | `P` E5 |
+**Tangan kiri: C3–E4**
+| Tuts putih | `Z` C3 | `X` D3 | `C` E3 | `V` F3 | `B` G3 | `N` A3 | `M` B3 | `,` C4 | `.` D4 | `/` E4 |
 |---|---|---|---|---|---|---|---|---|---|---|
-| **Tuts hitam** | `2` C#4 | `3` D#4 | | `5` F#4 | `6` G#4 | `7` A#4 | | `9` C#5 | `0` D#5 | |
+| **Tuts hitam** | `S` C#3 | `D` D#3 | | `G` F#3 | `H` G#3 | `J` A#3 | | `L` C#4 | `;` D#4 | |
+
+**Tangan kanan: C4–G5**
+| Tuts putih | `Q` C4 | `W` D4 | `E` E4 | `R` F4 | `T` G4 | `Y` A4 | `U` B4 | `I` C5 | `O` D5 | `P` E5 | `[` F5 | `]` G5 |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| **Tuts hitam** | `2` C#4 | `3` D#4 | | `5` F#4 | `6` G#4 | `7` A#4 | | `9` C#5 | `0` D#5 | | `=` F#5 | |
 
 `←`/`→` = geser seluruh rentang 1 oktaf · `Space` = sustain (tahan) · `Esc` = jeda pelajaran
 
