@@ -44,8 +44,8 @@ export function visibleRange(
 ): { first: number; last: number } {
   const count = Math.min(Math.max(whiteCount, 7), WHITE_KEYS.length)
   const c3 = WHITE_KEYS.indexOf(48 + octaveShift * 12)
-  // C3–E5 spans 17 white keys; narrow screens centre on the right-hand octave.
-  const centre = count >= 17 ? c3 + 8 : c3 + 10
+  // C3–G5 spans 19 white keys; narrow screens centre on the right-hand octave.
+  const centre = count >= 19 ? c3 + 9 : c3 + 10
   const start = Math.min(
     Math.max(Math.round(centre - (count - 1) / 2), 0),
     WHITE_KEYS.length - count,

@@ -1,5 +1,7 @@
 // Two-hand laptop layout, as semitone offsets from C3 (MIDI 48) before any
-// octave shift. Bottom rows play the left hand, top rows the right hand.
+// octave shift. The bottom rows cover C3–E4 for the left hand and the top rows
+// C4–G5 for the right hand, so each row can play a full do-to-do scale.
+// C4–E4 is reachable from both rows.
 const OFFSETS: Readonly<Record<string, number>> = {
   KeyZ: 0,
   KeyS: 1,
@@ -13,6 +15,11 @@ const OFFSETS: Readonly<Record<string, number>> = {
   KeyN: 9,
   KeyJ: 10,
   KeyM: 11,
+  Comma: 12,
+  KeyL: 13,
+  Period: 14,
+  Semicolon: 15,
+  Slash: 16,
   KeyQ: 12,
   Digit2: 13,
   KeyW: 14,
@@ -30,21 +37,34 @@ const OFFSETS: Readonly<Record<string, number>> = {
   KeyO: 26,
   Digit0: 27,
   KeyP: 28,
+  BracketLeft: 29,
+  Equal: 30,
+  BracketRight: 31,
+}
+
+const SYMBOL_LABELS: Readonly<Record<string, string>> = {
+  Comma: ',',
+  Period: '.',
+  Semicolon: ';',
+  Slash: '/',
+  BracketLeft: '[',
+  Equal: '=',
+  BracketRight: ']',
 }
 
 const BASE_MIDI = 48
 const RIGHT_HAND_OFFSET = 12
-const HIGHEST_OFFSET = 28
+const HIGHEST_OFFSET = 31
 
 export const MIN_OCTAVE_SHIFT = -2
 export const MAX_OCTAVE_SHIFT = 2
 
-const LABEL_BY_OFFSET = new Map(
-  Object.entries(OFFSETS).map(([code, offset]) => [
-    offset,
-    code.replace(/^(Key|Digit)/, ''),
-  ]),
-)
+// Top-row label first, matching where the keys sit on the laptop.
+const LABELS_BY_OFFSET = new Map<number, string[]>()
+for (const [code, offset] of Object.entries(OFFSETS)) {
+  const label = SYMBOL_LABELS[code] ?? code.replace(/^(Key|Digit)/, '')
+  LABELS_BY_OFFSET.set(offset, [label, ...(LABELS_BY_OFFSET.get(offset) ?? [])])
+}
 
 export function codeToMidi(code: string, octaveShift: number): number | null {
   const offset = OFFSETS[code]
@@ -56,10 +76,10 @@ function offsetOf(midi: number, octaveShift: number): number | null {
   return offset >= 0 && offset <= HIGHEST_OFFSET ? offset : null
 }
 
-/** Laptop key that plays `midi`, e.g. "Q" for C4 with no octave shift. */
-export function keyLabel(midi: number, octaveShift: number): string | null {
+/** Laptop keys that play `midi`, e.g. ["Q", ","] for C4 with no octave shift. */
+export function keyLabels(midi: number, octaveShift: number): string[] {
   const offset = offsetOf(midi, octaveShift)
-  return offset === null ? null : (LABEL_BY_OFFSET.get(offset) ?? null)
+  return offset === null ? [] : (LABELS_BY_OFFSET.get(offset) ?? [])
 }
 
 export function handFor(midi: number, octaveShift: number): 'L' | 'R' | null {

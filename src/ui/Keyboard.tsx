@@ -1,6 +1,6 @@
 import { useEffect, useRef } from 'react'
 import type { PointerEvent } from 'react'
-import { handFor, keyLabel } from '../input/keyboardMap.ts'
+import { handFor, keyLabels } from '../input/keyboardMap.ts'
 import type { NoteTracker } from '../input/NoteTracker.ts'
 import { isBlackKey, noteName } from '../music/notes.ts'
 
@@ -71,16 +71,14 @@ export function Keyboard({
   const keys = midis.map((midi) => {
     const black = isBlackKey(midi)
     const name = noteName(midi)
-    const label =
+    const labels =
       labelMode === 'note'
         ? black
-          ? ''
-          : name.startsWith('C')
-            ? name
-            : name[0]
+          ? []
+          : [name.startsWith('C') ? name : name[0]]
         : labelMode === 'keys'
-          ? (keyLabel(midi, octaveShift) ?? '')
-          : ''
+          ? keyLabels(midi, octaveShift)
+          : []
     const style = black
       ? {
           left: `${whitesBefore * whiteWidth - blackWidth / 2}%`,
@@ -101,7 +99,11 @@ export function Keyboard({
         aria-label={name}
         style={style}
       >
-        <span className="key-label">{label}</span>
+        {labels.map((label) => (
+          <span key={label} className="key-label">
+            {label}
+          </span>
+        ))}
       </div>
     )
   })

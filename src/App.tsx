@@ -230,9 +230,10 @@ function App() {
           {held.length > 0 ? held.map(noteName).join(' ') : '—'}
         </output>
         <p className="hint">
-          Klik atau sentuh tuts. Di laptop: <kbd>Z</kbd>–<kbd>M</kbd> tangan
-          kiri, <kbd>Q</kbd>–<kbd>P</kbd> tangan kanan (angka untuk tuts hitam),{' '}
-          <kbd>Space</kbd> sustain, <kbd>←</kbd> <kbd>→</kbd> geser oktaf.
+          Klik atau sentuh tuts. Di laptop: <kbd>Z</kbd>–<kbd>/</kbd> tangan
+          kiri, <kbd>Q</kbd>–<kbd>]</kbd> tangan kanan (baris di atasnya untuk
+          tuts hitam), <kbd>Space</kbd> sustain, <kbd>←</kbd> <kbd>→</kbd> geser
+          oktaf.
         </p>
       </main>
 

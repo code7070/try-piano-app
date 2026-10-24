@@ -20,8 +20,8 @@ describe('notes', () => {
 })
 
 describe('visibleRange', () => {
-  it('shows exactly the laptop-mapped keys when 17 white keys fit', () => {
-    expect(visibleRange(17, 0)).toEqual({ first: 48, last: 76 })
+  it('shows exactly the laptop-mapped keys when 19 white keys fit', () => {
+    expect(visibleRange(19, 0)).toEqual({ first: 48, last: 79 })
   })
 
   it('centres on the right-hand octave on narrow screens', () => {
@@ -29,11 +29,11 @@ describe('visibleRange', () => {
   })
 
   it('follows the octave shift', () => {
-    expect(visibleRange(17, 1)).toEqual({ first: 60, last: 88 })
+    expect(visibleRange(19, 1)).toEqual({ first: 60, last: 91 })
   })
 
   it('clamps to the piano edges', () => {
     expect(visibleRange(52, 0)).toEqual({ first: 21, last: 108 })
-    expect(visibleRange(17, -2).first).toBe(24)
+    expect(visibleRange(19, -2).first).toBe(24)
   })
 })
