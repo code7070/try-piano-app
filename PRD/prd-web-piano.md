@@ -1,7 +1,7 @@
 # PRD: Web Piano — Belajar & Latihan Piano dari Nol
 
 **Document ID:** PRD-001
-**Version:** 2.2
+**Version:** 2.3
 **Created:** 2026-10-24
 **Last Updated:** 2026-10-24
 **Status:** Draft
@@ -29,6 +29,7 @@ Web app (tanpa install, tanpa login) yang berperan sebagai **piano + guru**:
 3. **Lesson Player** dengan alur *dengarkan → coba pelan → coba dengan tempo*: tuts target menyala, ada nomor jari, falling notes, dan app **menunggu** sampai nada yang benar ditekan.
 4. **Feedback otomatis**: nada benar/salah secara real-time, akurasi timing, dan rangkuman bagian yang perlu diulang.
 5. **Alat latihan mandiri**: metronom, perlambat tempo, loop bagian sulit, latihan tangan terpisah, rencana latihan harian, dan catatan progres.
+6. **Mode Mentor**: pemandu berbasis aturan yang membawa pengguna melewati tahap **Belajar → Tiru → Latih → Praktik** untuk setiap materi, mengurangi bantuan visual seiring kemampuan naik, dan memutuskan kapan mengulang, menyederhanakan, atau lanjut. Tujuan akhirnya pengguna menguasai cara berlatih itu sendiri, lalu mentor melepasnya.
 
 ### 1.3 Goals & Success Metrics
 
@@ -80,6 +81,7 @@ Sebuah web app **tidak bisa menggantikan piano fisik sepenuhnya**. Batas ini dit
 - Lesson Player: konsep → demo → **mode tunggu** (wait mode), tuts menyala + nomor jari + falling notes, layar hasil.
 - Metronom dan count-in.
 - Kurikulum **Level 0–1** (± 12 pelajaran, 4 lagu public domain).
+- **Mode Mentor inti**: tangga belajar per pelajaran (Belajar → Tiru → Latih → Praktik), bantuan yang memudar, remediasi otomatis, pesan mentor, pembuka & rekap sesi.
 - Progres lokal: status pelajaran, akurasi terbaik, menit latihan.
 
 **Rilis 1.1: "Ritme & Dua Tangan"**
@@ -87,11 +89,13 @@ Sebuah web app **tidak bisa menggantikan piano fisik sepenuhnya**. Batas ini dit
 - Alat latihan: tempo 40–120%, loop A–B per birama, pilih tangan (app memainkan tangan yang lain).
 - **Keyboard MIDI** via Web MIDI API, plus rekomendasi perangkat dan tes ghosting.
 - Kurikulum **Level 2–3**: ritme, akor dasar, dua tangan.
+- Mentor: tahap tangan terpisah, naik tempo, gabung dua tangan, Uji di mode tempo.
 - Statistik per lagu.
 - UX mobile (mini-map, ukuran tuts, layout HP) dan PWA offline.
 
 **Rilis 1.2: "Mandiri"**
-- "Latihan Hari Ini": rencana latihan 10–20 menit + review berjarak.
+- "Latihan Hari Ini": rencana latihan 10–20 menit + review berjarak, dijalankan sebagai sesi mentor.
+- Mentor: praktik bebas berprompt, "Latih lagu baru sendiri" (mentor memudar), notasi sebagai tingkat bantuan.
 - Target harian dan streak.
 - Latihan pendengaran.
 - Notasi: not balok (kunci G & F) dan not angka.
@@ -104,7 +108,7 @@ Sebuah web app **tidak bisa menggantikan piano fisik sepenuhnya**. Batas ini dit
 - Akun, login, sinkronisasi cloud, leaderboard, fitur sosial.
 - Deteksi nada lewat mikrofon untuk piano akustik (kandidat roadmap; deteksi polifonik sulit dibuat akurat).
 - Deteksi postur atau jari lewat kamera.
-- Video pelajaran, AI coach, atau chat dengan guru.
+- Video pelajaran, AI coach generatif (LLM), atau chat dengan guru. Mode Mentor sepenuhnya berbasis aturan dan template teks, tanpa backend.
 - Lagu berhak cipta di dalam konten bawaan. Lagu pribadi hanya lewat import (1.2), disimpan lokal, dan tidak dibagikan.
 - Instrumen selain piano akustik; output MIDI; rekam ke audio (WAV/MP3).
 - Aplikasi native iOS/Android.
@@ -150,6 +154,9 @@ Sebuah web app **tidak bisa menggantikan piano fisik sepenuhnya**. Batas ini dit
 | US-015 | Pemain | melatih pendengaran | bisa mengenali nada dan akor | P2 |
 | US-016 | Pemain | belajar membaca not balok atau not angka | bisa memakai partitur di luar app | P2 |
 | US-017 | Pemain | meng-import file MIDI lagu favoritku | latihan lagu yang membuatku semangat | P2 |
+| US-018 | Pemula tanpa guru | dipandu mentor tahap demi tahap dari paham sampai bisa memainkan sendiri | tidak perlu memutuskan sendiri harus latihan apa dan kapan naik | P0 |
+| US-019 | Pemula | bantuan visual dikurangi perlahan saat aku makin bisa | benar-benar hafal, bukan cuma mengikuti tuts yang menyala | P0 |
+| US-020 | Pemain | diajari cara melatih lagu baru, lalu dilepas mentor | bisa berlatih mandiri tanpa dipandu app | P2 |
 
 ### 3.2 Functional Requirements
 
@@ -251,6 +258,22 @@ Sebuah web app **tidak bisa menggantikan piano fisik sepenuhnya**. Batas ini dit
 |----|-------------|----------|-------|--------|
 | FR-150 | Rekam & putar ulang permainan bebas, simpan lokal (rename/hapus). | P2 | 1.2 | Pending |
 
+**Mode Mentor** (detail di 4.4 "Mode Mentor")
+| ID | Requirement | Priority | Rilis | Status |
+|----|-------------|----------|-------|--------|
+| FR-160 | Mode Mentor jadi jalur belajar utama: "Lanjutkan" di Beranda membuka sesi mentor; Peta Belajar membuka pelajaran di tahap mentor terakhirnya; Main Bebas tetap bebas. | P0 | 1.0 | Pending |
+| FR-161 | Tangga belajar per pelajaran: fase Belajar → Tiru → Latih → Praktik dengan tahap default per `kind` (bisa di-override per pelajaran lewat `ladder`). | P0 | 1.0 | Pending |
+| FR-162 | Setiap tahap punya syarat lulus dan otomatis lanjut saat lulus. Lulus tahap **Uji** = status *Lulus* (FR-122) dan membuka pelajaran berikutnya. | P0 | 1.0 | Pending |
+| FR-163 | Tingkat bantuan S3–S0 yang memudar: S3 tuts menyala + huruf + jari + tombol laptop, S2 menyala + jari, S1 falling notes saja tanpa hint, S0 dari ingatan (hanya nada pertama ditampilkan). Naik/turun adaptif sesuai hasil. | P0 | 1.0 | Pending |
+| FR-164 | Remediasi: gagal 1× → ulangi dengan pesan spesifik; gagal 2× berturut-turut → micro-drill ≤ 2 birama bermasalah (dari `Scorer`) dengan bantuan +1; gagal 3× dalam satu sesi → tawarkan istirahat atau pindah ke review. Tidak pernah memblokir. | P0 | 1.0 | Pending |
+| FR-165 | Pesan mentor dari template di `i18n/id.ts` (bukan teks generatif): ≤ 2 kalimat, satu instruksi + satu target terukur, merujuk titik masalah nyata ("Birama 3: E sering terlewat"). | P0 | 1.0 | Pending |
+| FR-166 | Pembuka sesi (terakhir sampai mana, target hari ini) dan rekap penutup (yang membaik, satu "PR" untuk sesi berikutnya). | P0 | 1.0 | Pending |
+| FR-167 | Kontrol pengguna: lewati / ulangi tahap, keluar ke latihan bebas. Tahap Uji tidak bisa dilewati untuk membuka pelajaran berikutnya. Pengguna "pernah sedikit" mulai dari tahap Tiru sendiri; lulus ≥ 97% di percobaan pertama boleh loncat satu tahap. | P1 | 1.0 | Pending |
+| FR-168 | Tahap tempo & dua tangan: Tangan terpisah → Naik tempo (50 → 75 → 100%) → Gabung; Uji di mode tempo; micro-drill memakai loop A–B dengan tempo turun otomatis. | P0 | 1.1 | Pending |
+| FR-169 | Sesi mentor terencana sesuai target menit: pemanasan → review berjarak → materi baru → praktik bebas berprompt (tidak dinilai). Ini implementasi FR-134. | P1 | 1.2 | Pending |
+| FR-170 | "Latih lagu baru sendiri": mentor memandu pengguna menerapkan tangga belajar pada lagu import, lalu memudar (pengguna memilih tahap, tempo, dan loop sendiri; mentor hanya memberi saran). | P2 | 1.2 | Pending |
+| FR-171 | Notasi (not balok/angka tanpa falling notes) sebagai tingkat bantuan di tahap Praktik. | P2 | 1.2 | Pending |
+
 ### 3.3 Non-Functional Requirements
 
 | Category | Requirement |
@@ -315,6 +338,25 @@ LessonPlayer.start(lesson, mode, tempoPct, hands)
                                [IndexedDB gagal → simpan di memori, beri tahu, coba lagi]
 ```
 
+**Alur sesi mentor** (membungkus Lesson Player; engine pelajarannya sama)
+```
+MentorSession.start()
+  ├─ ProgressStore.getMentorState()                  [kosong → tahap pertama pelajaran Level 0 / hasil onboarding]
+  ├─ Mentor.say(checkIn)                             // terakhir sampai mana + target hari ini
+  ├─ loop sampai target menit tercapai atau pengguna berhenti:
+  │    ├─ MentorEngine.nextStep(state) → { lessonId, stage, support, bars, mode, tempoPct, hands }
+  │    ├─ Mentor.say(instruksi tahap + target terukur)
+  │    ├─ LessonPlayer.run(step)                     // sama dengan alur pelajaran di atas
+  │    ├─ Scorer.summarize() → MentorEngine.evaluate(step, summary)
+  │    │    ├─ [lulus]           → tahap berikutnya; ≥ 97% di percobaan pertama → bantuan −1 / loncat 1 tahap
+  │    │    ├─ [gagal 1×]        → ulangi tahap + pesan dari titik masalah
+  │    │    ├─ [gagal 2× beruntun] → micro-drill ≤ 2 birama bermasalah, bantuan +1
+  │    │    └─ [gagal 3× di sesi] → tawarkan istirahat / review; tidak memblokir
+  │    │    [lulus tahap Uji]   → ProgressStore.unlockNext(lessonId)
+  │    └─ ProgressStore.saveMentorState()             [IndexedDB gagal → simpan di memori, coba lagi]
+  └─ MentorSession.end() → rekap + satu "PR" untuk sesi berikutnya
+```
+
 **Strategi sampel**: 1 sampel per 3 semitone (± 30 file), format `.m4a`/`.ogg` mono, durasi dipotong 4–6 detik, dimuat progresif mulai C3–C6.
 
 **Struktur folder**
@@ -324,9 +366,10 @@ src/
   input/      InputManager, pointer, keyboardMap, midi
   music/      note utils, keyboard layout
   lesson/     Transport, Metronome, AutoPlayer, NoteMatcher, HintPolicy, Scorer, Calibration
+  mentor/     MentorEngine, ladder (tahap default per kind), messages, SessionPlanner (1.2)
   content/    schema (zod), loader, levels/*.json, songs/*.json
   progress/   ProgressStore (IndexedDB), practice plan (1.2)
-  ui/         screens (Home, Map, LessonPlayer, Result, FreePlay, Progress), Keyboard, Waterfall
+  ui/         screens (Home, Map, Mentor, LessonPlayer, Result, FreePlay, Progress), Keyboard, Waterfall
   i18n/       id.ts
 scripts/      midi-to-song (konversi + validasi konten)
 public/samples/
@@ -372,6 +415,24 @@ interface Lesson {
   pass:    { mode: 'wait' | 'tempo'; minAccuracy: number; minTempoPct?: number };
   mastery: { mode: 'tempo'; minAccuracy: number; minTempoPct: number };
   selfCheck?: string[];              // pertanyaan self-check
+  ladder?: StageId[];                // override tangga mentor; default per kind (4.4)
+}
+
+// Mode Mentor
+type StageId =
+  | 'concept' | 'listen'                                  // Belajar
+  | 'guided' | 'unguided'                                 // Tiru
+  | 'drill' | 'hands-separate' | 'tempo' | 'hands-together' // Latih
+  | 'checkpoint' | 'memory' | 'free';                     // Praktik
+type Support = 3 | 2 | 1 | 0;        // S3 bantuan penuh → S0 dari ingatan
+
+interface StageSpec {
+  id: StageId;
+  mode: 'wait' | 'tempo' | 'demo' | 'free';
+  support: Support;                  // bantuan awal
+  tempoPct?: number[];               // anak tangga tempo, mis. [50, 75, 100]
+  pass?: { minAccuracy: number; minTempoPct?: number; streak?: number };
+  optional?: boolean;                // tidak memengaruhi unlock
 }
 ```
 
@@ -402,6 +463,20 @@ interface Attempt {
   meanTimingMs?: number;             // mode tempo
   problems: { measure: number; midi: number; kind: 'wrong' | 'miss' | 'late' | 'early' }[];
   durationSec: number;
+  stage?: StageId;                   // diisi bila dijalankan mentor
+  support?: Support;
+  bars?: [number, number];           // cakupan birama (frasa / micro-drill)
+}
+
+// IndexedDB: mentorState (per pelajaran)
+interface MentorState {
+  lessonId: string;
+  stage: StageId;                    // tahap aktif
+  support: Support;
+  failStreak: number;                // gagal beruntun di tahap ini
+  sessionFails: number;              // direset tiap sesi baru
+  passedStages: StageId[];
+  updatedAt: number;
 }
 
 // IndexedDB: lessonProgress
@@ -437,7 +512,9 @@ Tidak ada API backend. Kontrak modul internal:
 | HintPolicy | `onWrong(expected, actual): Hint` | Menentukan level hint |
 | Scorer | `summarize(results): AttemptSummary` | Akurasi, titik masalah, saran |
 | Calibration | `run(): Promise<number>` | Mengukur offset latensi input |
-| ProgressStore | `saveAttempt(a)`, `getProgress()`, `unlockNext(lessonId)` | Persistensi IndexedDB |
+| ProgressStore | `saveAttempt(a)`, `getProgress()`, `unlockNext(lessonId)`, `getMentorState()`, `saveMentorState(s)` | Persistensi IndexedDB |
+| MentorEngine | `nextStep(state): Step`, `evaluate(step, summary): Decision` | State machine tangga belajar; fungsi murni, mudah di-unit-test |
+| SessionPlanner | `plan(progress, minutes): Step[]` | (1.2) Menyusun sesi: pemanasan → review → materi baru → praktik bebas |
 | MidiInput | `connect(): Promise<MIDIInput[]>` | (1.1) |
 
 ### 4.4 Desain Pembelajaran
@@ -467,6 +544,8 @@ Tidak ada API backend. Kontrak modul internal:
 4. **Coba dengan tempo** (1.1): mulai 75%, naik bila lulus.
 5. **Hasil**: akurasi, titik masalah, self-check (bila ada), lalu Ulangi / Latih bagian sulit / Lanjut.
 
+Di Mode Mentor, anatomi ini dipecah menjadi tahap-tahap tangga belajar di bawah.
+
 **Aturan kelulusan (default, bisa diatur per pelajaran)**
 | Status | Rilis 1.0 | Rilis 1.1+ |
 |--------|-----------|-----------|
@@ -482,6 +561,54 @@ Tidak ada API backend. Kontrak modul internal:
 - Hasil selalu ditutup dengan **satu** saran aksi yang paling berdampak.
 
 **Catatan keyboard laptop**: nomor jari tetap ditampilkan sebagai persiapan ke piano sungguhan, tapi app tidak memaksakan jari mana yang dipakai di keyboard laptop. Pesan ini disampaikan di onboarding.
+
+**Mode Mentor: dari belajar sampai praktik**
+
+Mentor berperan seperti guru yang memutuskan *langkah berikutnya*: apa yang dilatih, dengan bantuan sebanyak apa, dan kapan naik. Semua keputusan berbasis aturan dari hasil `Scorer`, dan teksnya dari template. Mentor tidak menambah konten baru; ia menjalankan pelajaran yang sama sebagai rangkaian tahap pendek (≤ 3 menit per tahap).
+
+*Dua tingkat tahapan*
+- **Perjalanan** (makro): Level 0–4 di Peta Belajar, dari kenalan tuts sampai mandiri.
+- **Tangga belajar** (mikro): setiap pelajaran melewati 4 fase, Belajar → Tiru → Latih → Praktik.
+
+*Tangga belajar per pelajaran*
+| Fase | Tahap | Yang dilakukan | Mode | Bantuan awal | Lulus bila | Rilis |
+|------|-------|----------------|------|--------------|------------|-------|
+| Belajar | `concept` Paham | Konsep + mini-kuis 1–3 soal ("Temukan C") | tunggu | S3 | Semua soal benar (boleh coba ulang) | 1.0 |
+| Belajar | `listen` Dengar | Demo bagian lagu, ikuti dengan mata | demo | — | Demo selesai 1× (boleh dilewati bila pernah) | 1.0 |
+| Tiru | `guided` Tiru dipandu | Per frasa 2 birama, frasa demi frasa | tunggu | S3 | Tiap frasa ≥ 80% | 1.0 |
+| Tiru | `unguided` Tiru sendiri | Seluruh bagian sekaligus | tunggu | S2 | ≥ 90% | 1.0 |
+| Latih | `drill` Bagian sulit | ≤ 2 birama dari titik masalah; dilewati otomatis bila tidak ada | tunggu (1.1: tempo, loop) | S2 | ≥ 95% 2× beruntun | 1.0 |
+| Latih | `hands-separate` Tangan terpisah | Satu tangan, tangan lain dimainkan app | tempo | S1 | ≥ 80% di 75% per tangan | 1.1 |
+| Latih | `tempo` Naik tempo | Anak tangga 50 → 75 → 100% | tempo | S1 | ≥ 80% per anak tangga | 1.1 |
+| Latih | `hands-together` Gabung | Dua tangan | tempo | S1 | ≥ 80% di 75% | 1.1 |
+| Praktik | `checkpoint` Uji | Seluruh bagian tanpa hint | 1.0: tunggu; 1.1+: tempo | S1 | = syarat *Lulus* (tabel kelulusan) | 1.0 |
+| Praktik | `memory` Dari ingatan | Hanya nada pertama ditampilkan; dijadwalkan di sesi berikutnya | sama dengan Uji | S0 | ≥ 80% (opsional) | 1.0 |
+| Praktik | `free` Praktik bebas | Main Bebas dengan prompt ("buat melodi 4 nada di posisi C") | bebas | — | Tidak dinilai | 1.2 |
+
+*Tangga default per `kind`* (bisa di-override lewat `Lesson.ladder`)
+- `find-note`: concept → guided → unguided → checkpoint
+- `song` 1.0: concept → listen → guided → unguided → drill → checkpoint → memory
+- `song` 1.1+: concept → listen → guided → unguided → drill → (hands-separate bila `hands: both`) → tempo → (hands-together) → checkpoint → memory
+- `rhythm` (1.1): concept → listen → guided → tempo → checkpoint
+- `ear` (1.2): concept → listen → unguided → checkpoint
+
+*Tingkat bantuan (fading)*
+| Level | Yang tampil | Hint saat salah |
+|-------|-------------|-----------------|
+| S3 | Tuts target menyala + huruf + nomor jari + tombol laptop + falling notes | Langsung |
+| S2 | Tuts menyala + nomor jari + falling notes | FR-103 (berkedip, lalu label setelah 3×) |
+| S1 | Falling notes saja | Tidak ada; target ditunjukkan setelah 3× salah |
+| S0 | Hanya nada pertama | Tidak ada; target ditunjukkan setelah 3× salah |
+
+Aturan adaptif: lulus ≥ 97% di percobaan pertama → tahap berikutnya mulai satu level bantuan lebih rendah (atau loncat satu tahap opsional). Gagal 2× beruntun → bantuan +1 (maks S3) dan micro-drill. Di 1.2, notasi (not balok/angka) menjadi alternatif S1 di fase Praktik.
+
+*Gaya pesan mentor*
+- Pembuka: "Terakhir kamu sampai *Tiru sendiri* di Ode to Joy. Hari ini: lulus Uji, ± 10 menit."
+- Instruksi tahap: satu instruksi + satu target terukur. "Sekarang tanpa huruf, tuts tetap menyala. Target: 9 dari 10 nada benar."
+- Setelah gagal: rujuk titik masalah nyata, tanpa menghakimi. "Birama 3: E sering terlewat. Kita latih birama 3–4 saja dulu."
+- Rekap: yang membaik + satu PR. "Akurasi naik 72% → 91%. PR besok: mainkan dari ingatan."
+
+*Mentor memudar* (1.2): setelah Level 3, "Latih lagu baru sendiri" mengajarkan tangga yang sama sebagai metode. Pengguna memilih tahap, tempo, dan loop sendiri; mentor hanya menyarankan ("Bagian ini masih 70%, coba turunkan tempo"). Ini jembatan ke goal *Latihan mandiri* (1.3).
 
 ### 4.5 UI/UX Specifications
 
@@ -514,6 +641,22 @@ Tidak ada API backend. Kontrak modul internal:
 └──────────────────────────────────────────────────────────────────┘
   Feedback: "✓ E benar"  /  "✗ Itu F, yang dicari E (jari 3, tombol E)"
 ```
+
+**Mode Mentor** (membungkus Lesson Player)
+```
+┌──────────────────────────────────────────────────────────────────┐
+│ ← Mentor · Level 1 · Ode to Joy (kanan)        Sesi: 8 / 15 menit │
+│ Belajar ✓ ── Tiru ● ── Latih ○ ── Praktik ○                       │
+│              └ Tiru sendiri (bantuan S2)                           │
+├──────────────────────────────────────────────────────────────────┤
+│ Mentor: "Bagus, frasa 1–2 sudah rapi. Sekarang tanpa huruf,       │
+│          tuts tetap menyala. Target: 9 dari 10 nada benar."       │
+│                          [ ▶ Mulai ]  [ Ulangi tahap ]  [ Lewati ] │
+├──────────────────────────────────────────────────────────────────┤
+│  (area Lesson Player: falling notes + keyboard, sesuai level bantuan) │
+└──────────────────────────────────────────────────────────────────┘
+```
+Selesai tiap tahap: hasil ringkas (akurasi + 1 kalimat mentor) lalu otomatis lanjut; layar Hasil penuh hanya setelah Uji dan di akhir sesi (rekap + PR).
 
 **Layar Hasil**: akurasi besar di tengah, bintang, 3 titik masalah ("Birama 3: E sering terlewat"), self-check (bila ada), tombol **Latih bagian sulit** (loop otomatis di birama bermasalah, tempo 75%) / **Ulangi** / **Lanjut**.
 
@@ -561,22 +704,22 @@ merge ke main ────────► Workers Builds: npm run check && npm r
 
 | Status | Count |
 |--------|-------|
-| Done | 4 |
-| In Progress | 0 |
-| Pending | 79 |
+| Done | 16 |
+| In Progress | 4 |
+| Pending | 78 |
 | Blocked | 0 |
-| **Total** | **83** |
+| **Total** | **98** |
 
-**Overall Progress:** 5%
+**Overall Progress:** 16%
 
-`[█░░░░░░░░░░░░░░░░░░░] 5%`
+`[███░░░░░░░░░░░░░░░░░] 16%`
 
 **Maintenance Protocol**
 1. Setelah task selesai, langsung ubah statusnya di file ini (Pending → ✅ Done).
 2. Hitung ulang Progress Summary, persentase, dan progress bar.
 3. Bila progres mencapai 100%, pindahkan file ini ke `PRD/finished/`.
 
-**Milestone:** Rilis 1.0 = Phase 1–10 (52 task) · Rilis 1.1 = Phase 11–16 (22 task) · Rilis 1.2 = Phase 17–18 (9 task)
+**Milestone:** Rilis 1.0 = Phase 1–10 + 19 (60 task) · Rilis 1.1 = Phase 11–16 + 20 (25 task) · Rilis 1.2 = Phase 17–18 + 21 (13 task). Phase 19–21 (Mode Mentor) ditambahkan di v2.3 tanpa menomori ulang phase lama.
 
 ---
 
@@ -596,41 +739,41 @@ merge ke main ────────► Workers Builds: npm run check && npm r
 
 | # | Task | Status | Notes |
 |---|------|--------|-------|
-| 2.1 | Implement `AudioEngine`: AudioContext (`latencyHint: 'interactive'`), master gain, limiter | Pending | FR-007 |
-| 2.2 | Implement unlock AudioContext pada gesture pertama + auto-resume setelah suspend | Pending | FR-002 |
+| 2.1 | Implement `AudioEngine`: AudioContext (`latencyHint: 'interactive'`), master gain, limiter | ✅ Done | FR-007; `src/audio/synth.ts`: latencyHint interactive, master gain, limiter |
+| 2.2 | Implement unlock AudioContext pada gesture pertama + auto-resume setelah suspend | ✅ Done | FR-002; Context dibuat & di-`resume()` di tiap noteOn dari gesture pengguna |
 | 2.3 | Prepare sampel piano: pilih 1 per 3 semitone, trim, fade-out, encode `.m4a` & `.ogg`, catat atribusi | Pending | Konfirmasi lisensi |
 | 2.4 | Implement `SampleLoader` progresif (C3–C6 dulu) dengan progress callback | Pending | FR-003 |
 | 2.5 | Implement `noteOn`/`noteOff` (dengan parameter `when`): pilih sampel terdekat, pitch-shift, gain velocity, release envelope | Pending | FR-001, FR-004 |
-| 2.6 | Implement sustain pedal, retrigger, batas polifoni, voice stealing | Pending | FR-005, FR-006 |
-| 2.7 | Implement fallback synth untuk nada yang sampelnya belum siap | Pending | FR-003 |
+| 2.6 | Implement sustain pedal, retrigger, batas polifoni, voice stealing | ✅ Done | FR-005, FR-006; Sustain (Space/tombol), retrigger, maks 32 voice dengan voice stealing |
+| 2.7 | Implement fallback synth untuk nada yang sampelnya belum siap | ✅ Done | FR-003; Synth 3-partial jadi suara utama sampai sampel (2.3–2.5) siap |
 
 ### Phase 3: Keyboard UI
 
 | # | Task | Status | Notes |
 |---|------|--------|-------|
-| 3.1 | Create util nada (MIDI ↔ huruf ↔ solfège ↔ not angka ↔ frekuensi ↔ putih/hitam) + unit test | Pending | |
-| 3.2 | Implement komponen `Keyboard`: render rentang dinamis dengan posisi tuts hitam proporsional | Pending | FR-010 |
-| 3.3 | Implement highlight via DOM ref (state "ditekan" vs "target") tanpa re-render seluruh keyboard | Pending | FR-012 |
-| 3.4 | Add mode label (huruf/solfège/angka/tombol/jari) + penanda C4 | Pending | FR-013 |
-| 3.5 | Implement kalkulasi jumlah tuts terlihat dari lebar viewport (resize-aware) | Pending | FR-011 |
+| 3.1 | Create util nada (MIDI ↔ huruf ↔ solfège ↔ not angka ↔ frekuensi ↔ putih/hitam) + unit test | In Progress | Huruf, frekuensi, putih/hitam + test selesai; solfège & not angka belum |
+| 3.2 | Implement komponen `Keyboard`: render rentang dinamis dengan posisi tuts hitam proporsional | ✅ Done | FR-010; `src/ui/Keyboard.tsx` |
+| 3.3 | Implement highlight via DOM ref (state "ditekan" vs "target") tanpa re-render seluruh keyboard | ✅ Done | FR-012; Toggle class `is-down` lewat subscribe `NoteTracker`; state "target" menyusul di Lesson Player |
+| 3.4 | Add mode label (huruf/solfège/angka/tombol/jari) + penanda C4 | In Progress | FR-013; Mode huruf/tombol/kosong + penanda oktaf di C; solfège/angka/jari belum |
+| 3.5 | Implement kalkulasi jumlah tuts terlihat dari lebar viewport (resize-aware) | ✅ Done | FR-011; `visibleRange` + ResizeObserver |
 
 ### Phase 4: Input
 
 | # | Task | Status | Notes |
 |---|------|--------|-------|
-| 4.1 | Implement `InputManager` + Pointer Events per `pointerId`, timestamp dikonversi ke waktu AudioContext | Pending | FR-020, FR-028 |
-| 4.2 | Implement glissando (hit-test saat `pointermove`) | Pending | FR-021 |
-| 4.3 | Implement mapping keyboard laptop mode dua tangan berbasis `code`, abaikan auto-repeat, nonaktif di input teks | Pending | FR-022, FR-024, FR-027 |
-| 4.4 | Add shortcut `←`/`→` geser rentang, `Space` sustain, `Esc` jeda | Pending | FR-023 |
-| 4.5 | Disable gesture browser di area keyboard | Pending | FR-026 |
-| 4.6 | Handle stuck note: blur, `visibilitychange`, `pointercancel`, geser rentang saat menekan | Pending | FR-025 |
+| 4.1 | Implement `InputManager` + Pointer Events per `pointerId`, timestamp dikonversi ke waktu AudioContext | In Progress | FR-020, FR-028; `NoteTracker` + Pointer Events per `pointerId` selesai; konversi timestamp ke waktu audio belum |
+| 4.2 | Implement glissando (hit-test saat `pointermove`) | ✅ Done | FR-021; Hit-test `elementFromPoint` saat `pointermove` |
+| 4.3 | Implement mapping keyboard laptop mode dua tangan berbasis `code`, abaikan auto-repeat, nonaktif di input teks | ✅ Done | FR-022, FR-024, FR-027; `src/input/keyboardMap.ts`, abaikan repeat & modifier, nonaktif di input teks |
+| 4.4 | Add shortcut `←`/`→` geser rentang, `Space` sustain, `Esc` jeda | In Progress | FR-023; `←`/`→` dan `Space` selesai; `Esc` menyusul bersama Lesson Player |
+| 4.5 | Disable gesture browser di area keyboard | ✅ Done | FR-026; touch-action, user-select, callout, contextmenu |
+| 4.6 | Handle stuck note: blur, `visibilitychange`, `pointercancel`, geser rentang saat menekan | ✅ Done | FR-025; releaseAll pada blur, tab tersembunyi, pointercancel, geser oktaf |
 
 ### Phase 5: App Shell & Pengaturan
 
 | # | Task | Status | Notes |
 |---|------|--------|-------|
 | 5.1 | Create navigasi & layar kosong: Beranda, Peta Belajar, Main Bebas, Progres | Pending | FR-030 |
-| 5.2 | Create layar Main Bebas + toolbar (volume, sustain, rentang, label, bantuan) | Pending | |
+| 5.2 | Create layar Main Bebas + toolbar (volume, sustain, rentang, label, bantuan) | ✅ Done | Satu-satunya layar saat ini; live di produksi 2026-10-24 |
 | 5.3 | Implement settings store + persist localStorage dengan versioning | Pending | FR-031 |
 | 5.4 | Create onboarding: tanya pengalaman, deteksi perangkat, cara main, arahkan ke Level 0 | Pending | FR-032 |
 | 5.5 | Add indikator progres sampel & overlay "Ketuk untuk mulai" | Pending | FR-002, FR-033 |
@@ -665,6 +808,19 @@ merge ke main ────────► Workers Builds: npm run check && npm r
 | 8.1 | Implement `ProgressStore` (IndexedDB): attempts, lessonProgress, dailyPractice | Pending | FR-130 |
 | 8.2 | Implement Peta Belajar: status, bintang, lock/unlock | Pending | FR-122, FR-131 |
 | 8.3 | Implement Beranda: "Lanjutkan" + menit latihan hari ini & minggu ini | Pending | FR-132 |
+
+### Phase 19: Mode Mentor Inti
+
+| # | Task | Status | Notes |
+|---|------|--------|-------|
+| 19.1 | Define tipe `StageId`/`StageSpec`/`Support`, tangga default per `kind`, field `ladder` opsional di skema `Lesson` | Pending | FR-161 |
+| 19.2 | Implement `MentorEngine` (`nextStep`, `evaluate`: lulus, gagal, remediasi, loncat) sebagai fungsi murni + unit test | Pending | FR-162, FR-164, FR-167 |
+| 19.3 | Implement level bantuan S3–S0 di `Keyboard`, `Waterfall`, `HintPolicy` + aturan naik/turun adaptif | Pending | FR-163 |
+| 19.4 | Persist `mentorState` di IndexedDB + field `stage`/`support`/`bars` di `Attempt` | Pending | FR-130 |
+| 19.5 | Create layar Mentor: progres tangga, pesan mentor, Mulai/Ulangi/Lewati, membungkus Lesson Player | Pending | FR-160, FR-167 |
+| 19.6 | Write template pesan mentor (pembuka, instruksi tahap, feedback titik masalah, rekap + PR) di `i18n/id.ts` | Pending | FR-165, FR-166 |
+| 19.7 | Hubungkan "Lanjutkan" di Beranda & Peta Belajar ke sesi mentor; titik mulai untuk pengguna "pernah sedikit" | Pending | FR-160, FR-167 |
+| 19.8 | Playtest tangga Level 0–1 bersama mentor, tuning ambang lulus & aturan remediasi | Pending | Jojo jadi tester pertama |
 
 ### Phase 9: Testing & QA 1.0
 
@@ -711,6 +867,14 @@ merge ke main ────────► Workers Builds: npm run check && npm r
 | 13.1 | Create pelajaran Level 2 (ritme, birama, posisi G) + 3 lagu | Pending | |
 | 13.2 | Create pelajaran Level 3 (akor C/F/G/Am, dua tangan) + 3 lagu | Pending | |
 | 13.3 | Playtest & revisi Level 2–3, idealnya direview musisi | Pending | |
+
+### Phase 20: Mentor Tempo & Dua Tangan
+
+| # | Task | Status | Notes |
+|---|------|--------|-------|
+| 20.1 | Add tahap `hands-separate`, `tempo` (50 → 75 → 100%), `hands-together` ke tangga default + Uji di mode tempo | Pending | FR-168 |
+| 20.2 | Upgrade micro-drill: loop A–B + tempo turun otomatis | Pending | FR-168 |
+| 20.3 | Add tangga untuk `kind: rhythm` | Pending | FR-168, FR-110 |
 
 ### Phase 14: Mobile UX
 
@@ -759,6 +923,15 @@ merge ke main ────────► Workers Builds: npm run check && npm r
 | 18.3 | Implement rekam & putar ulang permainan bebas (IndexedDB) | Pending | FR-150 |
 | 18.4 | Create pelajaran Level 4 (tangga nada, membaca not balok) + 3 lagu | Pending | |
 
+### Phase 21: Mentor Mandiri
+
+| # | Task | Status | Notes |
+|---|------|--------|-------|
+| 21.1 | Implement `SessionPlanner`: "Latihan Hari Ini" (17.1) dijalankan sebagai sesi mentor sesuai target menit | Pending | FR-169, FR-134 |
+| 21.2 | Implement tahap `free`: Main Bebas dengan prompt, tidak dinilai | Pending | FR-169 |
+| 21.3 | Implement "Latih lagu baru sendiri": tangga untuk lagu import, mentor memudar jadi pemberi saran | Pending | FR-170, butuh 18.2 |
+| 21.4 | Add notasi sebagai level bantuan di fase Praktik | Pending | FR-171, butuh 18.1 |
+
 ---
 
 ## 6. Risks & Mitigations
@@ -769,6 +942,7 @@ merge ke main ────────► Workers Builds: npm run check && npm r
 | **Kebiasaan teknik keliru** karena belajar di keyboard laptop atau layar sentuh | High | High | Batas yang jujur dijelaskan di onboarding, nomor jari selalu ditampilkan, rekomendasi MIDI mulai Level 2–3, self-check postur |
 | **Ghosting** keyboard laptop: akor 3 nada tidak terbaca | Med | High | Konten Level 0–2 minim akor; tes ghosting; akor disarankan lewat sentuh/MIDI |
 | Penilaian timing terasa tidak adil karena latensi perangkat | High | Med | Kalibrasi per perangkat, jendela toleransi lebar untuk pemula, clock AudioContext |
+| Mentor terasa mengekang atau terlalu banyak tahap, sehingga bosan | Med | Med | Tahap ≤ 3 menit, loncat tahap bila ≥ 97%, tombol Lewati (kecuali Uji), `drill` dilewati bila tidak ada titik masalah; tuning saat playtest 19.8 |
 | Motivasi turun saat belajar sendiri | High | Med | Pelajaran pendek, kemenangan kecil di awal, saran aksi yang jelas, latihan harian & streak (1.2), lagu yang dikenal |
 | **Produksi konten lama** (anotasi jari manual per nada) | Med | High | Script konversi MIDI, mulai dengan 4 lagu di 1.0, validasi otomatis |
 | Hak cipta lagu | High | Low | Hanya public domain/aransemen orisinal di konten bawaan; lagu pribadi lewat import lokal |
@@ -827,3 +1001,4 @@ merge ke main ────────► Workers Builds: npm run check && npm r
 | 2.0 | 2026-10-24 | Jojo | Pivot ke belajar & latihan dari nol: kurikulum, Lesson Player, mode tunggu/tempo, metronom, progres, batas yang jujur, mapping laptop dua tangan, rilis 1.0/1.1/1.2 |
 | 2.1 | 2026-10-24 | Jojo | Hosting diputuskan: Cloudflare Workers Static Assets + Workers Builds (4.6); NFR header keamanan & caching; oxlint menggantikan ESLint; task 1.1–1.2 selesai, 1.4 berjalan |
 | 2.2 | 2026-10-24 | Jojo | Worker `piano` live di `piano.the-friday.my.id` via Workers Builds; `workers.dev` dimatikan, preview pakai `wrangler preview`; task 1.4 & 10.3 selesai |
+| 2.3 | 2026-10-24 | Jojo | Mode Mentor: tangga belajar Belajar → Tiru → Latih → Praktik per pelajaran, level bantuan S3–S0, remediasi, pesan mentor berbasis template; US-018–020, FR-160–171, Phase 19–21 |
