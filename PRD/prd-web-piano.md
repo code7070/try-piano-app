@@ -1,7 +1,7 @@
 # PRD: Web Piano — Belajar & Latihan Piano dari Nol
 
 **Document ID:** PRD-001
-**Version:** 2.1
+**Version:** 2.2
 **Created:** 2026-10-24
 **Last Updated:** 2026-10-24
 **Status:** Draft
@@ -122,7 +122,7 @@ Sebuah web app **tidak bisa menggantikan piano fisik sepenuhnya**. Batas ini dit
 | Renderer notasi (VexFlow atau abcjs) | Not balok (1.2) | Dipilih saat 1.2 |
 | vite-plugin-pwa (Workbox) | Service worker (1.1) | |
 | Cloudflare Workers Static Assets | Hosting & CDN | Diputuskan; konfigurasi di `wrangler.jsonc`, lihat 4.6 |
-| Cloudflare Workers Builds (Git integration) | CI/CD: produksi dari `main`, preview per branch | Butuh repo GitHub yang dihubungkan di dashboard |
+| Cloudflare Workers Builds (Git integration) | CI/CD: produksi dari `main`, preview per branch | Terhubung: `code7070/try-piano-app` → Worker `piano` |
 | **Reviewer musik** (guru/musisi) | Validasi urutan dan isi kurikulum | Bukan dependency teknis, tapi kritis; lihat Risiko |
 
 ---
@@ -531,7 +531,7 @@ Tidak ada API backend. Kontrak modul internal:
 
 | Item | Konfigurasi |
 |------|-------------|
-| `wrangler.jsonc` | `name: piano`, `assets.directory: ./dist`, `not_found_handling: single-page-application`, `workers_dev: true`, `preview_urls: true` |
+| `wrangler.jsonc` | `name: piano`, `assets.directory: ./dist`, `not_found_handling: single-page-application`, `routes: piano.the-friday.my.id (custom_domain)`, `workers_dev: false`, `preview_urls: true` |
 | `public/_headers` | Header keamanan untuk semua path, cache `immutable` untuk `/assets/*` dan `/samples/*` |
 | Login Wrangler | Per proyek di `.wrangler-auth/` (git-ignored) lewat `scripts/with-wrangler-auth`, bukan login global |
 | Node | `.node-version` = 24 (dipakai Workers Builds); `engines` ≥ 22.12 |
@@ -540,9 +540,9 @@ Tidak ada API backend. Kontrak modul internal:
 **Alur rilis**
 ```
 push ke branch fitur ─► Workers Builds: npm run check && npm run build
-                        └─ npx wrangler versions upload ─► preview URL per versi
+                        └─ npx wrangler preview ─► Preview build per branch
 merge ke main ────────► Workers Builds: npm run check && npm run build
-                        └─ npx wrangler deploy ─► produksi (workers.dev / custom domain)
+                        └─ npx wrangler deploy ─► produksi (piano.the-friday.my.id)
 [check gagal]  → build berhenti, produksi tidak berubah
 [rilis buruk]  → rollback ke versi sebelumnya dari dashboard / `wrangler rollback`
 ```
@@ -561,15 +561,15 @@ merge ke main ────────► Workers Builds: npm run check && npm r
 
 | Status | Count |
 |--------|-------|
-| Done | 2 |
-| In Progress | 1 |
-| Pending | 80 |
+| Done | 4 |
+| In Progress | 0 |
+| Pending | 79 |
 | Blocked | 0 |
 | **Total** | **83** |
 
-**Overall Progress:** 2%
+**Overall Progress:** 5%
 
-`[░░░░░░░░░░░░░░░░░░░░] 2%`
+`[█░░░░░░░░░░░░░░░░░░░] 5%`
 
 **Maintenance Protocol**
 1. Setelah task selesai, langsung ubah statusnya di file ini (Pending → ✅ Done).
@@ -589,7 +589,7 @@ merge ke main ────────► Workers Builds: npm run check && npm r
 | 1.1 | Create project Vite + React + TypeScript (strict) dengan struktur folder sesuai 4.1 | ✅ Done | Vite 8, React 19, TS 6; folder modul dibuat saat modulnya diimplementasi |
 | 1.2 | Configure oxlint, Prettier, dan Vitest | ✅ Done | oxlint menggantikan ESLint (default template Vite); smoke test App |
 | 1.3 | Create design tokens (warna, tipografi, spacing) dan layout dasar full-viewport (`100dvh`, safe-area) | Pending | |
-| 1.4 | Configure deploy Cloudflare Workers Static Assets dengan preview per branch | In Progress | `wrangler.jsonc`, `_headers`, wrapper auth selesai & dicek via `wrangler dev`; sisa: login Cloudflare, push ke GitHub, hubungkan Workers Builds |
+| 1.4 | Configure deploy Cloudflare Workers Static Assets dengan preview per branch | ✅ Done | Worker `piano` terhubung ke `code7070/try-piano-app` via Workers Builds; build pertama sukses |
 | 1.5 | Add halaman fallback untuk browser tanpa Web Audio | Pending | FR-036 |
 
 ### Phase 2: Audio Engine
@@ -682,7 +682,7 @@ merge ke main ────────► Workers Builds: npm run check && npm r
 |---|------|--------|-------|
 | 10.1 | Write README: setup, struktur, cara menambah pelajaran & lagu | Pending | |
 | 10.2 | Add halaman Tentang: atribusi sampel & sumber lagu | Pending | Wajib CC-BY |
-| 10.3 | Deploy produksi ke Cloudflare + custom domain | Pending | HTTPS otomatis dari Cloudflare |
+| 10.3 | Deploy produksi ke Cloudflare + custom domain | ✅ Done | Live di https://piano.the-friday.my.id (2026-10-24); rilis 1.0 cukup merge ke `main` |
 
 ### — Rilis 1.1: Ritme & Dua Tangan —
 
@@ -789,8 +789,8 @@ merge ke main ────────► Workers Builds: npm run check && npm r
 - [ ] Notasi: cukup falling notes + huruf, atau mau belajar **not angka** / **not balok**? Mana yang lebih dulu?
 - [ ] Perangkat utama untuk belajar: laptop, tablet, atau HP?
 - [x] Stack & hosting: Vite + React + TypeScript, Cloudflare Workers Static Assets (diputuskan 2026-10-24).
-- [ ] Akun Cloudflare yang dipakai, dan custom domain-nya apa (atau cukup `*.workers.dev` dulu)?
-- [ ] Nama repo GitHub untuk dihubungkan ke Workers Builds?
+- [x] Akun Cloudflare & domain: Azizditya@gmail.com's Account, `piano.the-friday.my.id` (2026-10-24).
+- [x] Repo GitHub: `code7070/try-piano-app` (public).
 - [ ] Lagu Indonesia (lagu anak/daerah): perlu cek status hak cipta per lagu sebelum masuk konten bawaan.
 - [ ] Sumber sampel final & konfirmasi lisensinya.
 
@@ -826,3 +826,4 @@ merge ke main ────────► Workers Builds: npm run check && npm r
 | 1.0 | 2026-10-24 | Jojo | Initial draft (piano virtual) |
 | 2.0 | 2026-10-24 | Jojo | Pivot ke belajar & latihan dari nol: kurikulum, Lesson Player, mode tunggu/tempo, metronom, progres, batas yang jujur, mapping laptop dua tangan, rilis 1.0/1.1/1.2 |
 | 2.1 | 2026-10-24 | Jojo | Hosting diputuskan: Cloudflare Workers Static Assets + Workers Builds (4.6); NFR header keamanan & caching; oxlint menggantikan ESLint; task 1.1–1.2 selesai, 1.4 berjalan |
+| 2.2 | 2026-10-24 | Jojo | Worker `piano` live di `piano.the-friday.my.id` via Workers Builds; `workers.dev` dimatikan, preview pakai `wrangler preview`; task 1.4 & 10.3 selesai |
