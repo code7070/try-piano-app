@@ -1,7 +1,7 @@
 # PRD: Web Piano — Belajar & Latihan Piano dari Nol
 
 **Document ID:** PRD-001
-**Version:** 2.4
+**Version:** 2.5
 **Created:** 2026-10-24
 **Last Updated:** 2026-10-25
 **Status:** Draft
@@ -224,7 +224,7 @@ Sebuah web app **tidak bisa menggantikan piano fisik sepenuhnya**. Batas ini dit
 | FR-109 | Kalibrasi latensi per perangkat: pengguna mengetuk mengikuti metronom selama 8 ketuk, offset rata-rata disimpan dan dipakai saat penilaian. | P0 | 1.1 | Pending |
 | FR-110 | Latihan ritme: ketuk pola ritme dengan tombol apa saja, dinilai timing-nya. | P1 | 1.1 | Pending |
 | FR-111 | Notasi not balok (kunci G & F) dan not angka yang sinkron dengan Transport, sebagai alternatif falling notes. | P2 | 1.2 | Pending |
-| FR-112 | **Main Lagu** (ala Guitar Hero): pilih lagu, balok nada jatuh ke tutsnya sesuai tempo (Pelan 60% / Sedang 80% / Asli 100%), label balok not angka/huruf/tombol, tiap nada dinilai seperti mode tempo (FR-107) dengan kombo, akurasi, dan bintang di akhir; ada "Dengar dulu" yang memainkan lagunya. | P1 | 1.0 | Done |
+| FR-112 | **Main Lagu** (ala Guitar Hero): pilih lagu, balok nada jatuh ke tutsnya sesuai tempo (Pelan 60% / Sedang 80% / Asli 100%), label balok not angka/huruf/tombol, tiap nada dinilai seperti mode tempo (FR-107) dengan kombo, akurasi, dan bintang di akhir; skor terbaik per lagu & tempo disimpan dan ditampilkan; ada "Dengar dulu" yang memainkan lagunya. | P1 | 1.0 | Done |
 
 **Kurikulum & Konten**
 | ID | Requirement | Priority | Rilis | Status |
@@ -706,8 +706,8 @@ merge ke main ────────► Workers Builds: npm run check && npm r
 | Status | Count |
 |--------|-------|
 | Done | 23 |
-| In Progress | 14 |
-| Pending | 62 |
+| In Progress | 15 |
+| Pending | 61 |
 | Blocked | 0 |
 | **Total** | **99** |
 
@@ -851,8 +851,8 @@ merge ke main ────────► Workers Builds: npm run check && npm r
 | 11.2 | Implement `NoteMatcher` mode tempo + scoring (tepat/kurang tepat/meleset/ekstra) | ✅ Done | FR-107; `src/lesson/tempoMatcher.ts` (±80/±160 ms) + test; kalibrasi latensi (11.1) belum |
 | 11.3 | Add kontrol latihan: tempo 40–120%, loop A–B per birama, pilih tangan (`AutoPlayer` memainkan tangan lain) | Pending | FR-108 |
 | 11.4 | Implement latihan ritme (ketuk pola dengan tombol apa saja) | Pending | FR-110 |
-| 11.5 | Implement statistik per lagu (riwayat akurasi & tempo) + aturan bintang 2–3 | Pending | FR-133 |
-| 11.6 | Create mode Main Lagu (falling notes ala Guitar Hero) + lagu Ibu Kita Kartini | ✅ Done | FR-112; `src/ui/GameScreen.tsx`, `src/content/songs.ts`; ritme Kartini disederhanakan dari not angka umum, skor terbaik belum disimpan |
+| 11.5 | Implement statistik per lagu (riwayat akurasi & tempo) + aturan bintang 2–3 | In Progress | FR-133; Main Lagu menyimpan akurasi terbaik per lagu & tempo + bintang 0–3; riwayat per percobaan & bintang pelajaran belum |
+| 11.6 | Create mode Main Lagu (falling notes ala Guitar Hero) + lagu Ibu Kita Kartini | ✅ Done | FR-112; `src/ui/GameScreen.tsx`, `src/content/songs.ts`; ritme Kartini disederhanakan dari not angka umum; skor terbaik per lagu & tempo di localStorage `piano.game.v1` (`src/lesson/bestScores.ts`) |
 
 ### Phase 12: Web MIDI & Perangkat
 
@@ -1005,3 +1005,4 @@ merge ke main ────────► Workers Builds: npm run check && npm r
 | 2.2 | 2026-10-24 | Jojo | Worker `piano` live di `piano.the-friday.my.id` via Workers Builds; `workers.dev` dimatikan, preview pakai `wrangler preview`; task 1.4 & 10.3 selesai |
 | 2.3 | 2026-10-24 | Jojo | Mode Mentor: tangga belajar Belajar → Tiru → Latih → Praktik per pelajaran, level bantuan S3–S0, remediasi, pesan mentor berbasis template; US-018–020, FR-160–171, Phase 19–21 |
 | 2.4 | 2026-10-25 | Jojo | Mode Main Lagu ala Guitar Hero (FR-112, task 11.6) dengan lagu Ibu Kita Kartini; mode tempo `TempoMatcher` (11.2) dan renderer falling notes (6.6) mulai dipakai |
+| 2.5 | 2026-10-25 | Jojo | Main Lagu menyimpan skor terbaik per lagu & tempo dan menampilkannya di layar hasil; task 11.5 mulai berjalan |
