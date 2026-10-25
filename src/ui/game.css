@@ -138,6 +138,12 @@
   color: var(--border);
 }
 
+.game-best {
+  margin-top: 4px !important;
+  color: var(--accent);
+  font-weight: 600;
+}
+
 .game-counts {
   margin-top: 6px !important;
   font-size: 0.8125rem;

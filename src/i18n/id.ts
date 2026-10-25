@@ -1,6 +1,7 @@
 import type { Outcome, Step } from '../mentor/engine.ts'
 import type { Phase, StageId, Support } from '../mentor/ladder.ts'
 import type { AttemptSummary } from '../lesson/scorer.ts'
+import type { BestScore } from '../lesson/bestScores.ts'
 import type { Judgement, TempoStats } from '../lesson/tempoMatcher.ts'
 import type { Lesson } from '../lesson/types.ts'
 import { noteName } from '../music/notes.ts'
@@ -190,4 +191,17 @@ export function gameRecap(stats: TempoStats, tempoPct: number): string {
   if (stats.miss > stats.extra && tempoPct > 0.6)
     return `${score}. Banyak nada terlewat, coba tempo Pelan dulu.`
   return `${score}. Dengarkan dulu, lalu coba lagi pelan-pelan.`
+}
+
+/** How a finished run compares with the best one at the same tempo. */
+export function bestLine(
+  run: BestScore,
+  previous: BestScore | undefined,
+  tempoName: string,
+): string {
+  if (!previous) return `Rekor pertama di tempo ${tempoName}.`
+  const best = previous.accuracy >= run.accuracy ? previous : run
+  if (best === run)
+    return `Rekor baru di tempo ${tempoName}! Sebelumnya ${percent(previous.accuracy)}.`
+  return `Terbaik di tempo ${tempoName}: ${percent(best.accuracy)}.`
 }

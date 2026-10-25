@@ -1,8 +1,15 @@
 import { useEffect, useRef, useState } from 'react'
 import { GAME_SONGS } from '../content/songs.ts'
-import { gameRecap, JUDGEMENT_NAMES } from '../i18n/id.ts'
+import { bestLine, gameRecap, JUDGEMENT_NAMES } from '../i18n/id.ts'
 import { keyLabels } from '../input/keyboardMap.ts'
 import type { NoteTracker } from '../input/NoteTracker.ts'
+import {
+  bestKey,
+  loadScores,
+  recordRun,
+  saveScores,
+} from '../lesson/bestScores.ts'
+import type { BestScore } from '../lesson/bestScores.ts'
 import { GOOD_MS, starsFor, TempoMatcher } from '../lesson/tempoMatcher.ts'
 import type { Judgement, TempoStats } from '../lesson/tempoMatcher.ts'
 import { keyLayout, notAngka, noteName } from '../music/notes.ts'
@@ -27,6 +34,8 @@ interface GameScreenProps {
 
 interface Run {
   matcher: TempoMatcher
+  /** Where this run's best score is stored. */
+  key: string
   /** performance.now() at which the first note reaches the hit line. */
   zero: number
   demo: boolean
@@ -52,6 +61,24 @@ const LABEL_OPTIONS: { value: NoteLabel; text: string }[] = [
   { value: 'note', text: 'Nada' },
   { value: 'keys', text: 'Tombol' },
 ]
+
+function createRun(matcher: TempoMatcher, key: string, demo: boolean): Run {
+  return {
+    matcher,
+    key,
+    zero: performance.now() + LEAD_IN_MS,
+    demo,
+    raf: 0,
+    played: 0,
+    sounding: new Map(),
+    hitAt: new Map(),
+  }
+}
+
+/** Negative during the lead-in, 0 when the first note reaches the line. */
+function songTime(current: Run): number {
+  return performance.now() - current.zero
+}
 
 function noteText(midi: number, mode: NoteLabel, octaveShift: number) {
   if (mode === 'angka') {
@@ -86,6 +113,9 @@ export function GameScreen({
   const [mode, setMode] = useState<Mode>('idle')
   const [stats, setStats] = useState<TempoStats | null>(null)
   const [call, setCall] = useState<{ kind: Judgement | 'extra'; id: number }>()
+  const [scores, setScores] = useState(loadScores)
+  const [previous, setPrevious] = useState<BestScore>()
+  const [storageFailed, setStorageFailed] = useState(false)
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const run = useRef<Run | null>(null)
   const callId = useRef(0)
@@ -118,7 +148,7 @@ export function GameScreen({
         notes: current.matcher.notes,
         judgements: current.matcher.judgements,
         hitAt: current.hitAt,
-        now: performance.now() - current.zero,
+        now: songTime(current),
       },
     )
   }
@@ -179,8 +209,18 @@ export function GameScreen({
   function finish(current: Run) {
     release(current)
     run.current = null
-    setStats(current.matcher.stats())
+    const final = current.matcher.stats()
+    setStats(final)
     setMode(current.demo ? 'idle' : 'done')
+    if (!current.demo) {
+      // Fresh from storage, so a run in another tab is not overwritten.
+      const recorded = recordRun(loadScores(), current.key, final)
+      setPrevious(recorded.previous)
+      if (recorded.isBest) {
+        setScores(recorded.scores)
+        if (!saveScores(recorded.scores)) setStorageFailed(true)
+      }
+    }
     showTargets(null)
     draw()
   }
@@ -188,7 +228,7 @@ export function GameScreen({
   function frame() {
     const current = run.current
     if (!current) return
-    const now = performance.now() - current.zero
+    const now = songTime(current)
     const { matcher } = current
 
     if (current.demo) {
@@ -225,15 +265,11 @@ export function GameScreen({
 
   function start(demo: boolean) {
     if (run.current) release(run.current)
-    const current: Run = {
-      matcher: new TempoMatcher(song.notes, 60000 / (song.tempo * tempo)),
-      zero: performance.now() + LEAD_IN_MS,
+    const current = createRun(
+      new TempoMatcher(song.notes, 60000 / (song.tempo * tempo)),
+      bestKey(song.id, tempo),
       demo,
-      raf: 0,
-      played: 0,
-      sounding: new Map(),
-      hitAt: new Map(),
-    }
+    )
     run.current = current
     setMode(demo ? 'demo' : 'play')
     setStats(demo ? null : current.matcher.stats())
@@ -270,7 +306,7 @@ export function GameScreen({
     tracker.subscribe((midi, down) => {
       const current = run.current
       if (!down || !current || current.demo) return
-      const now = performance.now() - current.zero
+      const now = songTime(current)
       // Warming up during the lead-in is not an extra note.
       if (now < -GOOD_MS) return
       const hit = current.matcher.press(midi, now)
@@ -308,6 +344,9 @@ export function GameScreen({
   useEffect(() => () => onTargets([]), [onTargets])
 
   const running = mode === 'play' || mode === 'demo'
+  const best = scores.best[bestKey(song.id, tempo)]
+  const tempoName =
+    TEMPO_OPTIONS.find((option) => option.value === tempo)?.text ?? ''
   const stars = stats ? starsFor(stats.accuracy) : 0
 
   return (
@@ -412,6 +451,7 @@ export function GameScreen({
             {song.title}
             {song.composer && ` · ${song.composer}`} ·{' '}
             {Math.round(song.tempo * tempo)} BPM
+            {best && ` · Terbaik ${Math.round(best.accuracy * 100)}%`}
           </span>
         )}
         <span className="game-actions">
@@ -454,6 +494,15 @@ export function GameScreen({
               <span>{'★'.repeat(3 - stars)}</span>
             </p>
             <p>{gameRecap(stats, tempo)}</p>
+            <p className="game-best">
+              {bestLine(
+                { accuracy: stats.accuracy, maxCombo: stats.maxCombo },
+                previous,
+                tempoName,
+              )}
+              {storageFailed &&
+                ' Skor tidak bisa disimpan di browser ini, jadi akan hilang saat tab ditutup.'}
+            </p>
             <p className="game-counts">
               {JUDGEMENT_NAMES.perfect} {stats.perfect} · {JUDGEMENT_NAMES.good}{' '}
               {stats.good} · {JUDGEMENT_NAMES.miss} {stats.miss} ·{' '}
