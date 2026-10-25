@@ -16,7 +16,7 @@ const A4 = 69
 const B4 = 71
 const C5 = 72
 
-function sequence(steps: Step[], hand?: Hand): SongNote[] {
+export function sequence(steps: Step[], hand?: Hand): SongNote[] {
   let beat = 0
   return steps.map(([midi, durBeat, finger]) => {
     const note: SongNote = {
@@ -31,7 +31,7 @@ function sequence(steps: Step[], hand?: Hand): SongNote[] {
   })
 }
 
-function song(
+export function song(
   meta: Omit<Song, 'notes' | 'measures' | 'timeSig'>,
   notes: SongNote[],
 ): Song {

@@ -5,7 +5,7 @@ import {
   useRef,
   useState,
 } from 'react'
-import type { KeyboardEvent as ReactKeyboardEvent, RefObject } from 'react'
+import type { RefObject } from 'react'
 import { createSynth, isAudioSupported } from './audio/synth.ts'
 import {
   codeToMidi,
@@ -17,17 +17,20 @@ import { NoteTracker } from './input/NoteTracker.ts'
 import { noteName, visibleRange } from './music/notes.ts'
 import { Keyboard } from './ui/Keyboard.tsx'
 import type { KeyFlash, KeyTarget, LabelMode } from './ui/Keyboard.tsx'
+import { GameScreen } from './ui/GameScreen.tsx'
 import { MentorScreen } from './ui/MentorScreen.tsx'
+import { onRadioKeyDown } from './ui/radio.ts'
 import './ui/piano.css'
 
 const coarsePointer =
   typeof window !== 'undefined' &&
   window.matchMedia?.('(pointer: coarse)').matches
 
-type View = 'mentor' | 'free'
+type View = 'mentor' | 'game' | 'free'
 
 const VIEW_OPTIONS: { value: View; text: string }[] = [
   { value: 'mentor', text: 'Mentor' },
+  { value: 'game', text: 'Main Lagu' },
   { value: 'free', text: 'Main Bebas' },
 ]
 
@@ -36,30 +39,6 @@ const LABEL_OPTIONS: { value: LabelMode; text: string }[] = [
   { value: 'keys', text: 'Tombol' },
   { value: 'none', text: 'Kosong' },
 ]
-
-const ARROW_STEP: Record<string, number> = {
-  ArrowLeft: -1,
-  ArrowUp: -1,
-  ArrowRight: 1,
-  ArrowDown: 1,
-}
-
-/** Arrow keys move the selection inside a radiogroup, wrapping at the ends. */
-function onRadioKeyDown<T>(
-  event: ReactKeyboardEvent<HTMLDivElement>,
-  options: { value: T }[],
-  current: T,
-  select: (value: T) => void,
-) {
-  const step = ARROW_STEP[event.key]
-  if (!step) return
-  event.preventDefault()
-  const index = options.findIndex((option) => option.value === current)
-  const next = (index + step + options.length) % options.length
-  select(options[next].value)
-  const button = event.currentTarget.children[next]
-  if (button instanceof HTMLElement) button.focus()
-}
 
 function isTypingTarget(target: EventTarget | null): boolean {
   if (!(target instanceof HTMLElement)) return false
@@ -131,8 +110,8 @@ function App() {
   )
 
   function switchView(next: View) {
-    // Lessons are written for the default laptop range (PRD FR-120).
-    if (next === 'mentor') shiftOctave(-octaveShiftRef.current)
+    // Lessons and songs are written for the default laptop range (FR-120).
+    if (next !== 'free') shiftOctave(-octaveShiftRef.current)
     setView(next)
   }
 
@@ -225,7 +204,7 @@ function App() {
   }, [synth, tracker, shiftOctave])
 
   return (
-    <div className="app">
+    <div className={view === 'game' ? 'app is-game' : 'app'}>
       <header className="topbar">
         <div className="brand">
           <h1>Piano</h1>
@@ -349,6 +328,16 @@ function App() {
             onTargets={setTargets}
             onFlash={setFlash}
           />
+        ) : view === 'game' ? (
+          <GameScreen
+            tracker={tracker}
+            first={first}
+            last={last}
+            octaveShift={octaveShift}
+            touch={Boolean(coarsePointer)}
+            onTargets={setTargets}
+            onFlash={setFlash}
+          />
         ) : (
           <>
             {/* Announcing every note would flood screen readers mid-play. */}
@@ -379,8 +368,8 @@ function App() {
           }
           tracker={tracker}
           sustain={sustainOn}
-          targets={view === 'mentor' ? targets : undefined}
-          flash={view === 'mentor' ? flash : null}
+          targets={view === 'free' ? undefined : targets}
+          flash={view === 'free' ? null : flash}
         />
       </div>
     </div>

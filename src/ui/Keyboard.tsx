@@ -2,7 +2,7 @@ import { useEffect, useRef } from 'react'
 import type { PointerEvent } from 'react'
 import { handFor, keyLabels } from '../input/keyboardMap.ts'
 import type { NoteTracker } from '../input/NoteTracker.ts'
-import { isBlackKey, noteName } from '../music/notes.ts'
+import { keyLayout, noteName } from '../music/notes.ts'
 
 export type LabelMode = 'note' | 'keys' | 'none'
 
@@ -115,13 +115,10 @@ export function Keyboard({
   }
 
   const targetByMidi = new Map(targets.map((target) => [target.midi, target]))
-  const midis = Array.from({ length: last - first + 1 }, (_, i) => first + i)
-  const whiteWidth = 100 / midis.filter((midi) => !isBlackKey(midi)).length
-  const blackWidth = whiteWidth * 0.6
-  let whitesBefore = 0
+  const layout = keyLayout(first, last)
 
-  const keys = midis.map((midi) => {
-    const black = isBlackKey(midi)
+  const keys = [...layout].map(([midi, box]) => {
+    const { black } = box
     const name = noteName(midi)
     const target = targetByMidi.get(midi)
     const labels = target
@@ -137,12 +134,8 @@ export function Keyboard({
           ? keyLabels(midi, octaveShift)
           : []
     const style = black
-      ? {
-          left: `${whitesBefore * whiteWidth - blackWidth / 2}%`,
-          width: `${blackWidth}%`,
-        }
+      ? { left: `${box.left}%`, width: `${box.width}%` }
       : undefined
-    if (!black) whitesBefore++
     return (
       <div
         key={midi}

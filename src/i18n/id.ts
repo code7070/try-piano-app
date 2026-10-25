@@ -1,6 +1,7 @@
 import type { Outcome, Step } from '../mentor/engine.ts'
 import type { Phase, StageId, Support } from '../mentor/ladder.ts'
 import type { AttemptSummary } from '../lesson/scorer.ts'
+import type { Judgement, TempoStats } from '../lesson/tempoMatcher.ts'
 import type { Lesson } from '../lesson/types.ts'
 import { noteName } from '../music/notes.ts'
 
@@ -167,4 +168,26 @@ export function pressFeedback(
     if (parts.length) text += ` (${parts.join(', ')})`
   }
   return text
+}
+
+// Falling-notes game (tempo mode, PRD FR-107).
+
+export const JUDGEMENT_NAMES: Record<Judgement | 'extra', string> = {
+  perfect: 'Tepat!',
+  good: 'Kurang tepat',
+  miss: 'Meleset',
+  extra: 'Nada lebih',
+}
+
+export function gameRecap(stats: TempoStats, tempoPct: number): string {
+  const score = percent(stats.accuracy)
+  if (stats.accuracy >= 0.95)
+    return tempoPct < 1
+      ? `${score}, rapi sekali. Saatnya naikkan tempo.`
+      : `${score} di tempo asli. Kamu sudah bisa lagu ini!`
+  if (stats.accuracy >= 0.8)
+    return `${score}. Hampir! Ulangi sekali lagi supaya makin lancar.`
+  if (stats.miss > stats.extra && tempoPct > 0.6)
+    return `${score}. Banyak nada terlewat, coba tempo Pelan dulu.`
+  return `${score}. Dengarkan dulu, lalu coba lagi pelan-pelan.`
 }

@@ -1,5 +1,12 @@
 import { describe, expect, it } from 'vitest'
-import { isBlackKey, midiToFrequency, noteName, visibleRange } from './notes.ts'
+import {
+  isBlackKey,
+  keyLayout,
+  midiToFrequency,
+  notAngka,
+  noteName,
+  visibleRange,
+} from './notes.ts'
 
 describe('notes', () => {
   it('names notes with scientific pitch notation', () => {
@@ -35,5 +42,30 @@ describe('visibleRange', () => {
   it('clamps to the piano edges', () => {
     expect(visibleRange(52, 0)).toEqual({ first: 21, last: 108 })
     expect(visibleRange(19, -2).first).toBe(24)
+  })
+})
+
+describe('keyLayout', () => {
+  it('splits the width between white keys and centres black keys on gaps', () => {
+    const layout = keyLayout(60, 64)
+    expect(layout.get(60)).toEqual({ left: 0, width: 100 / 3, black: false })
+    expect(layout.get(64)?.left).toBeCloseTo(200 / 3)
+    const black = layout.get(61)!
+    expect(black.black).toBe(true)
+    expect(black.left + black.width / 2).toBeCloseTo(100 / 3)
+  })
+})
+
+describe('notAngka', () => {
+  it('numbers the C major scale from middle C', () => {
+    expect([60, 62, 64, 65, 67, 69, 71].map((m) => notAngka(m).degree)).toEqual(
+      ['1', '2', '3', '4', '5', '6', '7'],
+    )
+    expect(notAngka(61)).toEqual({ degree: '1#', octave: 0 })
+  })
+
+  it('counts octave dots relative to C4–B4', () => {
+    expect(notAngka(72)).toEqual({ degree: '1', octave: 1 })
+    expect(notAngka(59)).toEqual({ degree: '7', octave: -1 })
   })
 })
