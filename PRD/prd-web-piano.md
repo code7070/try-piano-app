@@ -1,9 +1,9 @@
 # PRD: Web Piano — Belajar & Latihan Piano dari Nol
 
 **Document ID:** PRD-001
-**Version:** 2.3
+**Version:** 2.4
 **Created:** 2026-10-24
-**Last Updated:** 2026-10-24
+**Last Updated:** 2026-10-25
 **Status:** Draft
 
 ---
@@ -224,6 +224,7 @@ Sebuah web app **tidak bisa menggantikan piano fisik sepenuhnya**. Batas ini dit
 | FR-109 | Kalibrasi latensi per perangkat: pengguna mengetuk mengikuti metronom selama 8 ketuk, offset rata-rata disimpan dan dipakai saat penilaian. | P0 | 1.1 | Pending |
 | FR-110 | Latihan ritme: ketuk pola ritme dengan tombol apa saja, dinilai timing-nya. | P1 | 1.1 | Pending |
 | FR-111 | Notasi not balok (kunci G & F) dan not angka yang sinkron dengan Transport, sebagai alternatif falling notes. | P2 | 1.2 | Pending |
+| FR-112 | **Main Lagu** (ala Guitar Hero): pilih lagu, balok nada jatuh ke tutsnya sesuai tempo (Pelan 60% / Sedang 80% / Asli 100%), label balok not angka/huruf/tombol, tiap nada dinilai seperti mode tempo (FR-107) dengan kombo, akurasi, dan bintang di akhir; ada "Dengar dulu" yang memainkan lagunya. | P1 | 1.0 | Done |
 
 **Kurikulum & Konten**
 | ID | Requirement | Priority | Rilis | Status |
@@ -704,22 +705,22 @@ merge ke main ────────► Workers Builds: npm run check && npm r
 
 | Status | Count |
 |--------|-------|
-| Done | 21 |
-| In Progress | 13 |
-| Pending | 64 |
+| Done | 23 |
+| In Progress | 14 |
+| Pending | 62 |
 | Blocked | 0 |
-| **Total** | **98** |
+| **Total** | **99** |
 
-**Overall Progress:** 21%
+**Overall Progress:** 23%
 
-`[████░░░░░░░░░░░░░░░░] 21%`
+`[█████░░░░░░░░░░░░░░░] 23%`
 
 **Maintenance Protocol**
 1. Setelah task selesai, langsung ubah statusnya di file ini (Pending → ✅ Done).
 2. Hitung ulang Progress Summary, persentase, dan progress bar.
 3. Bila progres mencapai 100%, pindahkan file ini ke `PRD/finished/`.
 
-**Milestone:** Rilis 1.0 = Phase 1–10 + 19 (60 task) · Rilis 1.1 = Phase 11–16 + 20 (25 task) · Rilis 1.2 = Phase 17–18 + 21 (13 task). Phase 19–21 (Mode Mentor) ditambahkan di v2.3 tanpa menomori ulang phase lama.
+**Milestone:** Rilis 1.0 = Phase 1–10 + 19 (60 task) · Rilis 1.1 = Phase 11–16 + 20 (26 task) · Rilis 1.2 = Phase 17–18 + 21 (13 task). Phase 19–21 (Mode Mentor) ditambahkan di v2.3 tanpa menomori ulang phase lama.
 
 ---
 
@@ -751,7 +752,7 @@ merge ke main ────────► Workers Builds: npm run check && npm r
 
 | # | Task | Status | Notes |
 |---|------|--------|-------|
-| 3.1 | Create util nada (MIDI ↔ huruf ↔ solfège ↔ not angka ↔ frekuensi ↔ putih/hitam) + unit test | In Progress | Huruf, frekuensi, putih/hitam + test selesai; solfège & not angka belum |
+| 3.1 | Create util nada (MIDI ↔ huruf ↔ solfège ↔ not angka ↔ frekuensi ↔ putih/hitam) + unit test | In Progress | Huruf, frekuensi, putih/hitam, not angka (`notAngka`, do = C) + test selesai; solfège belum |
 | 3.2 | Implement komponen `Keyboard`: render rentang dinamis dengan posisi tuts hitam proporsional | ✅ Done | FR-010; `src/ui/Keyboard.tsx` |
 | 3.3 | Implement highlight via DOM ref (state "ditekan" vs "target") tanpa re-render seluruh keyboard | ✅ Done | FR-012; Toggle class `is-down` lewat subscribe `NoteTracker`; target (menyala, huruf, jari, tombol, kedip) + kilas ✓/✕ dari Mentor |
 | 3.4 | Add mode label (huruf/solfège/angka/tombol/jari) + penanda C4 | In Progress | FR-013; Mode huruf/tombol/kosong + penanda oktaf di C; solfège/angka/jari belum |
@@ -787,7 +788,7 @@ merge ke main ────────► Workers Builds: npm run check && npm r
 | 6.3 | Implement `Metronome` (BPM, birama, aksen, pulsa visual) | Pending | FR-106 |
 | 6.4 | Implement `AutoPlayer` untuk demo dengan highlight target & nomor jari | In Progress | FR-101; `src/lesson/demo.ts` berbasis timer dengan tuts menyala + jari; pindah ke `Transport` saat 6.2 |
 | 6.5 | Implement `NoteMatcher` mode tunggu (nada tunggal & akor dalam jendela 300 ms) + `HintPolicy` | ✅ Done | FR-102, FR-103; `src/lesson/waitMatcher.ts` + `scorer.ts`; hint kedip setelah 1× salah, jari & tombol setelah 3× |
-| 6.6 | Implement renderer falling notes (canvas) sinkron dengan Transport, warna per tangan | Pending | FR-104 |
+| 6.6 | Implement renderer falling notes (canvas) sinkron dengan Transport, warna per tangan | In Progress | FR-104; `src/ui/waterfall.ts` dipakai di Main Lagu dengan clock `performance.now()`; pindah ke `Transport` (6.2) & pasang di Lesson Player belum |
 | 6.7 | Create layar Lesson Player (Konsep → Dengarkan → Coba pelan → Hasil) | In Progress | FR-100; Dijalankan lewat layar Mentor (Paham → Dengar → Tiru); falling notes belum |
 | 6.8 | Create layar Hasil: akurasi, ≤ 3 titik masalah, self-check, saran aksi | In Progress | FR-105; Akurasi + titik masalah terburuk di pesan mentor; layar Hasil penuh & self-check belum |
 
@@ -847,10 +848,11 @@ merge ke main ────────► Workers Builds: npm run check && npm r
 | # | Task | Status | Notes |
 |---|------|--------|-------|
 | 11.1 | Implement kalibrasi latensi (tap-along 8 ketuk) per jenis input | Pending | FR-109 |
-| 11.2 | Implement `NoteMatcher` mode tempo + scoring (tepat/kurang tepat/meleset/ekstra) | Pending | FR-107 |
+| 11.2 | Implement `NoteMatcher` mode tempo + scoring (tepat/kurang tepat/meleset/ekstra) | ✅ Done | FR-107; `src/lesson/tempoMatcher.ts` (±80/±160 ms) + test; kalibrasi latensi (11.1) belum |
 | 11.3 | Add kontrol latihan: tempo 40–120%, loop A–B per birama, pilih tangan (`AutoPlayer` memainkan tangan lain) | Pending | FR-108 |
 | 11.4 | Implement latihan ritme (ketuk pola dengan tombol apa saja) | Pending | FR-110 |
 | 11.5 | Implement statistik per lagu (riwayat akurasi & tempo) + aturan bintang 2–3 | Pending | FR-133 |
+| 11.6 | Create mode Main Lagu (falling notes ala Guitar Hero) + lagu Ibu Kita Kartini | ✅ Done | FR-112; `src/ui/GameScreen.tsx`, `src/content/songs.ts`; ritme Kartini disederhanakan dari not angka umum, skor terbaik belum disimpan |
 
 ### Phase 12: Web MIDI & Perangkat
 
@@ -965,7 +967,7 @@ merge ke main ────────► Workers Builds: npm run check && npm r
 - [x] Stack & hosting: Vite + React + TypeScript, Cloudflare Workers Static Assets (diputuskan 2026-10-24).
 - [x] Akun Cloudflare & domain: Azizditya@gmail.com's Account, `piano.the-friday.my.id` (2026-10-24).
 - [x] Repo GitHub: `code7070/try-piano-app` (public).
-- [ ] Lagu Indonesia (lagu anak/daerah): perlu cek status hak cipta per lagu sebelum masuk konten bawaan.
+- [ ] Lagu Indonesia (lagu anak/daerah): perlu cek status hak cipta per lagu sebelum masuk konten bawaan. *Ibu Kita Kartini* (W.R. Supratman, wafat 1938) sudah public domain dan masuk Main Lagu (2026-10-25).
 - [ ] Sumber sampel final & konfirmasi lisensinya.
 
 ---
@@ -1002,3 +1004,4 @@ merge ke main ────────► Workers Builds: npm run check && npm r
 | 2.1 | 2026-10-24 | Jojo | Hosting diputuskan: Cloudflare Workers Static Assets + Workers Builds (4.6); NFR header keamanan & caching; oxlint menggantikan ESLint; task 1.1–1.2 selesai, 1.4 berjalan |
 | 2.2 | 2026-10-24 | Jojo | Worker `piano` live di `piano.the-friday.my.id` via Workers Builds; `workers.dev` dimatikan, preview pakai `wrangler preview`; task 1.4 & 10.3 selesai |
 | 2.3 | 2026-10-24 | Jojo | Mode Mentor: tangga belajar Belajar → Tiru → Latih → Praktik per pelajaran, level bantuan S3–S0, remediasi, pesan mentor berbasis template; US-018–020, FR-160–171, Phase 19–21 |
+| 2.4 | 2026-10-25 | Jojo | Mode Main Lagu ala Guitar Hero (FR-112, task 11.6) dengan lagu Ibu Kita Kartini; mode tempo `TempoMatcher` (11.2) dan renderer falling notes (6.6) mulai dipakai |
